@@ -1,0 +1,54 @@
+<!-- @dsCard height=320 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: var(--background-bg-background); }
+  .cover { position: relative; width: 960px; height: 320px; overflow: hidden; background: var(--background-bg-background); }
+  .band { position: absolute; left: 0; top: 0; }
+  .blue { fill: var(--vibrant-vibrant-blue); }
+  .navy { fill: var(--vibrant-vibrant-dark-blue); }
+  [data-theme="dark"] .navy { fill: var(--vibrant-vibrant-blue-muted); }
+  .tint { fill: var(--vibrant-vibrant-blue-10); }
+  .yellow { fill: var(--vibrant-vibrant-yellow); }
+  .pink { fill: var(--vibrant-vibrant-pink); }
+  .slab { rx: var(--radius-card); }
+  .tile { rx: var(--radius-control); }
+  .text { position: absolute; left: 40px; bottom: 32px; max-width: 880px; }
+  .name { margin: 0; font-family: var(--font-sf); font-size: 64px; line-height: .95; font-weight: 700; letter-spacing: -0.4px; color: var(--content-content-primary); }
+  .tagline { margin: 16px 0 0; font-family: var(--font-sf); font-size: 14px; line-height: 20px; color: var(--content-content-secondary); }
+</style>
+</head>
+<body>
+<div class="cover">
+  <svg class="band" width="960" height="112" viewBox="0 0 960 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!--
+      blocks: vibrant-vibrant-blue 384×132 slab, vibrant-vibrant-dark-blue 192×132 slab (vibrant-vibrant-blue-muted in dark), corners radius-card; yellow, pink and blue single tiles
+      arrangement: top band (name too wide for a 440px zone at 64px), two slabs bleeding off the top edge, then a two-row tile grid bleeding off the right edge
+      pattern: tiles cut by radius-control, some merged two-wide — the Home screen's services grid of 48px tiles is the most specific shape this product has
+      scales: tile 48 = 2 × space-5, gap space-2 (8), slab gap space-2, row pitch 56, radii radius-control 12 and radius-card 20
+    -->
+    <rect class="blue slab" x="0" y="-20" width="384" height="132"/>
+    <rect class="navy slab" x="392" y="-20" width="192" height="132"/>
+
+    <rect class="tint tile" x="592" y="0" width="48" height="48"/>
+    <rect class="yellow tile" x="648" y="0" width="48" height="48"/>
+    <rect class="tint tile" x="704" y="0" width="104" height="48"/>
+    <rect class="tint tile" x="816" y="0" width="48" height="48"/>
+    <rect class="pink tile" x="872" y="0" width="48" height="48"/>
+    <rect class="tint tile" x="928" y="0" width="48" height="48"/>
+
+    <rect class="tint tile" x="592" y="56" width="104" height="48"/>
+    <rect class="tint tile" x="704" y="56" width="48" height="48"/>
+    <rect class="blue tile" x="760" y="56" width="48" height="48"/>
+    <rect class="tint tile" x="816" y="56" width="104" height="48"/>
+    <rect class="tint tile" x="928" y="56" width="48" height="48"/>
+  </svg>
+  <div class="text">
+    <h1 class="name">Kyiv Digital<br>Design System</h1>
+    <p class="tagline">Міські сервіси Києва: одне зрозуміле завдання на екран.</p>
+  </div>
+</div>
+</body>
+</html>

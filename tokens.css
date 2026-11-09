@@ -1,0 +1,157 @@
+/* Kyiv Digital Design System — generated from tokens.json */
+:root, [data-theme="light"] {
+  --vibrant-vibrant-blue: #008cff;
+  --vibrant-vibrant-blue-10: #008cff1a;
+  --vibrant-vibrant-blue-muted: #0062b2;
+  --vibrant-vibrant-blue-deep: #0d3659;
+  --vibrant-vibrant-dark-blue: #17273f;
+  --vibrant-vibrant-green: #56c865;
+  --vibrant-vibrant-green-10: #56c8651a;
+  --vibrant-vibrant-yellow: #f6c446;
+  --vibrant-vibrant-pink: #e9a2c5;
+  --vibrant-vibrant-orange: #eb5828;
+  --vibrant-vibrant-orange-10: #eb58281a;
+  --vibrant-vibrant-red: #e42b22;
+  --vibrant-vibrant-red-10: #e42b221a;
+  --neutral-neutral-gray100: #343137;
+  --neutral-neutral-gray70: #747481;
+  --neutral-neutral-gray60: #ababb0;
+  --neutral-neutral-gray40: #e7e7e9;
+  --neutral-neutral-gray30: #eaeaeb;
+  --neutral-neutral-gray20: #f1f1f1;
+  --neutral-neutral-gray10: #f7f7f7;
+  --neutral-neutral-white: #ffffff;
+  --neutral-neutral-white-80: #ffffffcc;
+  --neutral-neutral-white-70: #ffffffb2;
+  --neutral-neutral-white-40: #ffffff7a;
+  --neutral-neutral-white-20: #ffffff29;
+  --neutral-neutral-white-5: #ffffff0d;
+  --dark-dark-shade120: #0d0e14;
+  --dark-dark-shade100: #12131a;
+  --dark-dark-shade80: #23242f;
+  --dark-dark-shade50: #30313a;
+  --content-content-primary: var(--neutral-neutral-gray100);
+  --content-content-secondary: var(--neutral-neutral-gray70);
+  --content-content-disabled: var(--neutral-neutral-gray60);
+  --content-content-link: var(--vibrant-vibrant-blue);
+  --content-content-accent: var(--vibrant-vibrant-blue);
+  --content-content-primary-cta: var(--neutral-neutral-white);
+  --content-content-secondary-cta: var(--neutral-neutral-gray100);
+  --content-content-primary-invert: var(--neutral-neutral-white);
+  --content-content-secondary-invert: var(--neutral-neutral-white-70);
+  --content-content-negative: var(--vibrant-vibrant-red);
+  --content-content-warning: var(--vibrant-vibrant-orange);
+  --content-content-positive: var(--vibrant-vibrant-green);
+  --background-bg-background: var(--neutral-neutral-gray10);
+  --background-bg-surface: var(--neutral-neutral-white);
+  --background-bg-subtle: var(--neutral-neutral-gray20);
+  --background-bg-info: var(--neutral-neutral-gray20);
+  --background-bg-accent: var(--vibrant-vibrant-blue);
+  --background-bg-accent-subtle: var(--vibrant-vibrant-blue-10);
+  --background-bg-accent-home: var(--vibrant-vibrant-blue);
+  --background-bg-primary-cta: var(--vibrant-vibrant-blue);
+  --background-bg-secondary-cta: var(--neutral-neutral-gray30);
+  --background-bg-disabled: var(--neutral-neutral-gray40);
+  --background-bg-background-invert: var(--neutral-neutral-gray100);
+  --background-bg-surface-invert: var(--neutral-neutral-white);
+  --background-bg-subtle-invert: var(--neutral-neutral-white-20);
+  --background-bg-negative: var(--vibrant-vibrant-red);
+  --background-bg-warning: var(--vibrant-vibrant-orange);
+  --background-bg-positive: var(--vibrant-vibrant-green);
+  --background-bg-quick-access: var(--neutral-neutral-gray10);
+  --border-border-regular: var(--neutral-neutral-gray30);
+  --border-border-accent: var(--vibrant-vibrant-blue);
+  --border-border-negative: var(--vibrant-vibrant-red);
+  --border-border-warning: var(--vibrant-vibrant-orange);
+  --border-border-positive: var(--vibrant-vibrant-green);
+  --border-border-invert: var(--neutral-neutral-white);
+  --chart-chart-power-on: var(--neutral-neutral-white);
+  --chart-chart-power-off: var(--vibrant-vibrant-dark-blue);
+  --chart-chart-power-possible: var(--neutral-neutral-gray40);
+  --ios-label-primary: #000000;
+  --ios-fill-tertiary: rgba(118,118,128,0.12);
+  --ios-segmented-selected: #ffffff;
+  --ios-switch-track-off: rgba(120,120,128,0.16);
+  --ios-platter: rgba(191,191,191,0.44);
+  --shadow-elevation: 0 1px 4px 0 #0000000a;
+}
+[data-theme="dark"] {
+  --content-content-primary: var(--neutral-neutral-white-80);
+  --content-content-secondary: var(--neutral-neutral-white-40);
+  --content-content-disabled: var(--neutral-neutral-white-20);
+  --content-content-link: var(--vibrant-vibrant-blue);
+  --content-content-accent: var(--vibrant-vibrant-blue);
+  --content-content-primary-cta: var(--neutral-neutral-white);
+  --content-content-secondary-cta: var(--neutral-neutral-white);
+  --content-content-primary-invert: var(--neutral-neutral-white);
+  --content-content-secondary-invert: var(--neutral-neutral-white-40);
+  --content-content-negative: var(--vibrant-vibrant-red);
+  --content-content-warning: var(--vibrant-vibrant-orange);
+  --content-content-positive: var(--vibrant-vibrant-green);
+  --background-bg-background: var(--dark-dark-shade100);
+  --background-bg-surface: var(--dark-dark-shade80);
+  --background-bg-subtle: var(--dark-dark-shade100);
+  --background-bg-info: var(--dark-dark-shade80);
+  --background-bg-accent: var(--vibrant-vibrant-blue);
+  --background-bg-accent-subtle: var(--vibrant-vibrant-blue-10);
+  --background-bg-accent-home: var(--vibrant-vibrant-blue-muted);
+  --background-bg-primary-cta: var(--vibrant-vibrant-blue);
+  --background-bg-secondary-cta: var(--neutral-neutral-white-20);
+  --background-bg-disabled: var(--neutral-neutral-white-5);
+  --background-bg-background-invert: var(--neutral-neutral-gray100);
+  --background-bg-surface-invert: var(--neutral-neutral-white);
+  --background-bg-subtle-invert: var(--neutral-neutral-white-20);
+  --background-bg-negative: var(--vibrant-vibrant-red);
+  --background-bg-warning: var(--vibrant-vibrant-orange);
+  --background-bg-positive: var(--vibrant-vibrant-green);
+  --background-bg-quick-access: var(--neutral-neutral-white-80);
+  --border-border-regular: var(--dark-dark-shade50);
+  --border-border-accent: var(--vibrant-vibrant-blue);
+  --border-border-negative: var(--vibrant-vibrant-red);
+  --border-border-warning: var(--vibrant-vibrant-orange);
+  --border-border-positive: var(--vibrant-vibrant-green);
+  --border-border-invert: var(--dark-dark-shade80);
+  --chart-chart-power-on: var(--vibrant-vibrant-blue-deep);
+  --chart-chart-power-off: var(--dark-dark-shade120);
+  --chart-chart-power-possible: var(--dark-dark-shade50);
+  --ios-label-primary: #ffffff;
+  --ios-fill-tertiary: rgba(118,118,128,0.24);
+  --ios-segmented-selected: rgba(255,255,255,0.27);
+  --ios-switch-track-off: rgba(120,120,128,0.32);
+  --ios-platter: rgba(37,37,37,0.55);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-sm: 8px;
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+  --font-sf: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+.large-title { font-family: var(--font-sf); font-size: 34px; line-height: 41px; font-weight: 400; letter-spacing: -0.4px; }
+.large-title-emphasized { font-family: var(--font-sf); font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.4px; }
+.title1 { font-family: var(--font-sf); font-size: 28px; line-height: 34px; font-weight: 400; letter-spacing: -0.4px; }
+.title1-emphasized { font-family: var(--font-sf); font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.4px; }
+.title2 { font-family: var(--font-sf); font-size: 22px; line-height: 28px; font-weight: 400; letter-spacing: -0.4px; }
+.title2-emphasized { font-family: var(--font-sf); font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -0.4px; }
+.title3 { font-family: var(--font-sf); font-size: 20px; line-height: 25px; font-weight: 400; letter-spacing: -0.4px; }
+.title3-emphasized { font-family: var(--font-sf); font-size: 20px; line-height: 25px; font-weight: 590; letter-spacing: -0.4px; }
+.headline { font-family: var(--font-sf); font-size: 17px; line-height: 22px; font-weight: 590; letter-spacing: -0.4px; }
+.body { font-family: var(--font-sf); font-size: 17px; line-height: 22px; font-weight: 400; letter-spacing: -0.4px; }
+.body-emphasized { font-family: var(--font-sf); font-size: 17px; line-height: 22px; font-weight: 590; letter-spacing: -0.4px; }
+.callout { font-family: var(--font-sf); font-size: 16px; line-height: 21px; font-weight: 400; letter-spacing: -0.4px; }
+.callout-emphasized { font-family: var(--font-sf); font-size: 16px; line-height: 21px; font-weight: 590; letter-spacing: -0.4px; }
+.subheadline { font-family: var(--font-sf); font-size: 15px; line-height: 20px; font-weight: 400; letter-spacing: -0.4px; }
+.subheadline-emphasized { font-family: var(--font-sf); font-size: 15px; line-height: 20px; font-weight: 590; letter-spacing: -0.4px; }
+.footnote { font-family: var(--font-sf); font-size: 13px; line-height: 18px; font-weight: 400; letter-spacing: -0.4px; }
+.footnote-emphasized { font-family: var(--font-sf); font-size: 13px; line-height: 18px; font-weight: 590; letter-spacing: -0.4px; }
+.caption1 { font-family: var(--font-sf); font-size: 12px; line-height: 16px; font-weight: 400; letter-spacing: -0.4px; }
+.caption1-emphasized { font-family: var(--font-sf); font-size: 12px; line-height: 16px; font-weight: 590; letter-spacing: -0.4px; }
+.caption2 { font-family: var(--font-sf); font-size: 11px; line-height: 13px; font-weight: 400; letter-spacing: -0.4px; }
+.caption2-emphasized { font-family: var(--font-sf); font-size: 11px; line-height: 13px; font-weight: 590; letter-spacing: -0.4px; }

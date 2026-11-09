@@ -1,0 +1,28 @@
+<!-- @dsCard group="Layout" height=260 width=760 -->
+<style>body{margin:0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;flex-wrap:wrap;align-items:flex-start}.col{box-sizing:border-box;width:375px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--background-bg-background);color:var(--content-content-primary)}.lbl{margin:12px 0 0;font:590 11px/13px var(--font-mono);letter-spacing:0;color:var(--content-content-secondary)}.lbl:first-child{margin-top:0}.kv{display:flex;flex-direction:column;gap:2px}.kv>*{margin:0}.muted{color:var(--content-content-secondary)}.link{padding:12px 16px;color:var(--content-content-link)}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Divider, Card } = window.KyivDigitalDesignSystem_728336;
+function Column({ theme }) {
+  return h("div", { className: "col", "data-theme": theme },
+    h("p", { className: "lbl" }, "between parts of a card"),
+    h(Card, { gap: 3 },
+      h("div", { className: "kv" }, h("p", { className: "footnote muted" }, "Поліс"), h("p", { className: "subheadline-emphasized" }, "ЕР-219004871")),
+      h(Divider),
+      h("div", { className: "kv" }, h("p", { className: "footnote muted" }, "Діє до"), h("p", { className: "subheadline-emphasized" }, "20 червня 2027"))),
+    h("p", { className: "lbl" }, "inset · between link rows"),
+    h(Card, { padding: "list" },
+      h("span", { className: "headline link" }, "Правила паркування"),
+      h(Divider, { inset: true }),
+      h("span", { className: "headline link" }, "Тарифи")));
+}
+function App() {
+  const root = document.documentElement;
+  const read = () => root.getAttribute("data-theme") || "light";
+  const [theme, setTheme] = React.useState(read);
+  React.useEffect(() => { const mo = new MutationObserver(() => setTheme(read())); mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] }); return () => mo.disconnect(); }, []);
+  return h("div", { className: "row" }, h(Column, { theme }), h(Column, { theme: theme === "dark" ? "light" : "dark" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

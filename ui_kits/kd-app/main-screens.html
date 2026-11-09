@@ -1,0 +1,579 @@
+<!-- @dsCard group="KD App (iOS)" page height=3724 width=1221 subtitle="Home, Services and Profile as shipped" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Main screens</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  :root {
+    --phone-w: 375px;
+    /* from Figma, not a system token: the feed sheet's top corners on Home (Figma 4062:2990), between radius-control (12) and radius-card (20) */
+    --feed-sheet-radius: 16px;
+    /* from Figma, not a system token: the fine print of the rights strip on Profile (Figma 4062:2407, SF Pro Medium 9/12, tracking -0.3) */
+    --legal-font-size: 9px;
+    --legal-line-height: 12px;
+    --legal-weight: 510;
+    --legal-tracking: -0.3px;
+    --legal-text-width: 188px;
+    /* from Figma, not a system token: the crest and partner logo placeholders of the rights strip (Figma 4062:2406, 4062:2408) */
+    --crest-w: 27px;
+    --crest-h: 36px;
+    --partner-logo-w: 59px;
+    --partner-logo-h: 20px;
+  }
+
+  /* Page chrome around the phones. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 3 + var(--space-5) * 4); margin: 0 auto; padding: 0 var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+  .page h1, .page h2, .page p { margin: 0; }
+  .toolbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) 0; background: var(--background-bg-surface); border-bottom: 1px solid var(--border-border-regular); }
+  .switch-slot { width: 200px; }
+  .lead { max-width: 760px; }
+  .tab-section { display: flex; flex-direction: column; gap: var(--space-4); }
+  .tab-intro { display: flex; flex-direction: column; gap: var(--space-1); max-width: 760px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); align-items: start; }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); width: var(--phone-w); }
+  .demo figcaption { display: flex; flex-direction: column; gap: var(--space-1); min-height: calc(var(--space-6) * 3); }
+  .demo code { font-family: var(--font-mono); color: var(--content-content-secondary); }
+  .muted { color: var(--content-content-secondary); }
+  @media (max-width: 480px) {
+    .page { padding: 0 0 var(--space-6); }
+    .toolbar, .tab-intro, .lead-block { padding-left: var(--space-4); padding-right: var(--space-4); box-sizing: border-box; }
+    .demo figcaption { padding: 0 var(--space-4); box-sizing: border-box; }
+  }
+
+  /* The phone: a plain 375-wide frame. data-theme on it switches every token inside. No device chrome: the navbars draw the status bar. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); overflow: hidden; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .tab { position: relative; height: 100%; display: flex; flex-direction: column; }
+  .scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .scroll-body { min-height: 100%; display: flex; flex-direction: column; }
+  .backdrop-blue { background: var(--background-bg-accent-home); }
+  /* The collapsed NavbarMain floats over the scrolling content; the expanded one scrolls away with it. */
+  .bar { position: absolute; top: 0; left: 0; right: 0; z-index: 2; transition: opacity 150ms ease, visibility 150ms ease; }
+  .bar[data-shown="false"] { opacity: 0; visibility: hidden; pointer-events: none; }
+  .top { flex: none; }
+  .blue { background: var(--background-bg-accent-home); }
+
+  /* Grouped list blocks are the system Card (padding="list"): surface fill, 4px inner padding and the elevation shadow. */
+  .stack { display: flex; flex-direction: column; }
+  .section { display: flex; flex-direction: column; gap: var(--space-2); }
+
+  /* Home */
+  .home-slot { height: calc(var(--space-6) * 2); }
+  .quick { display: flex; gap: var(--space-2); padding: var(--space-5); overflow-x: auto; scrollbar-width: none; }
+  .quick::-webkit-scrollbar { display: none; }
+  .quick > * { flex: none; }
+  .feed-sheet { flex: 1 0 auto; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4) 0; background: var(--background-bg-background); border-radius: var(--feed-sheet-radius) var(--feed-sheet-radius) 0 0; }
+  .feed-cells { display: flex; flex-direction: column; gap: var(--space-2); }
+  .feed-wrapped { display: flex; align-items: center; gap: var(--space-4); box-sizing: border-box; width: 100%; padding: var(--space-2) var(--space-4); border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .feed-wrapped:active { opacity: 0.7; }
+  .feed-wrapped:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: -2px; }
+  .feed-disc { flex: none; display: grid; place-items: center; padding: var(--space-2); border-radius: var(--radius-pill); background: var(--background-bg-surface); }
+  .feed-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .feed-desc { color: var(--content-content-secondary); }
+  .feed-chevron { flex: none; display: block; color: var(--content-content-secondary); }
+  .search-results { padding: var(--space-3) var(--space-4) var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+  .empty { padding: var(--space-4) 0; }
+
+  /* Services */
+  .svc-body { display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-5) var(--space-4); }
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+
+  /* Profile */
+  .profile-body { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5) var(--space-4); }
+  .gap-more { margin-top: var(--space-4); }
+  .value-cell { display: flex; align-items: center; gap: var(--space-3); box-sizing: border-box; width: 100%; height: calc(var(--space-6) + var(--space-4)); padding: var(--space-3) var(--space-4); border: 0; border-radius: var(--radius-control); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .value-cell:active { opacity: 0.7; }
+  .value-cell:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: -2px; }
+  .value-cell .label { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .value-cell .value { flex: none; color: var(--content-content-secondary); }
+  .value-cell .selector { flex: none; display: block; color: var(--content-content-secondary); }
+  .negative { color: var(--content-content-negative); }
+  .rights { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-4) var(--space-5); background: var(--background-bg-surface); }
+  .rights-org { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+  .rights-text { margin: 0; min-width: 0; width: var(--legal-text-width); font-size: var(--legal-font-size); line-height: var(--legal-line-height); font-weight: var(--legal-weight); letter-spacing: var(--legal-tracking); color: var(--content-content-primary); }
+  .placeholder-img { flex: none; background: var(--background-bg-subtle); border-radius: var(--radius-sm); }
+  .crest { width: var(--crest-w); height: var(--crest-h); }
+  .partner-logo { width: var(--partner-logo-w); height: var(--partner-logo-h); }
+
+  /* NavbarMain states reference column */
+  .states { display: flex; flex-direction: column; gap: var(--space-4); }
+  .state { display: flex; flex-direction: column; gap: var(--space-1); }
+  .state-box { overflow: hidden; /* square corners, no border or outline: a frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); }
+  .state-box.blue { background: var(--background-bg-accent-home); }
+  .state-note { display: flex; flex-direction: column; gap: var(--space-2); }
+  .state-note p { margin: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {
+  SegmentedControl, NavbarMain, Search, QuickAccessItem, FeedDate, FeedCell, ServiceGridItem,
+  Cell, ListCaption, Icon, Card,
+} = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+
+/* ---------- Sample data. Copy is from the Figma frames; the invented parts are named in comments. ---------- */
+
+// Services tab: groups in the order of the grid frame (4062:3551). The list frame (4062:3616) puts «Мапи» before «Допомога»
+// and «Евакуація» before «Штрафи»; one shared order keeps the grid/list toggle honest.
+const SERVICE_GROUPS = [
+  { title: 'Транспортні послуги', items: [
+    { label: 'QR-квитки', icon: 'Ic2Qr' },
+    { label: 'Транспортна карта', icon: 'Ic2Tk' },
+    { label: 'Рух транспорту', icon: 'Ic2TransportSchedule' },
+    { label: 'Оплата проїзду', icon: 'Ic2Wallet' },
+    { label: 'Замовлення учнівського', icon: 'Ic2School' },
+  ] },
+  { title: 'Сервіси водія', items: [
+    { label: 'Погодинне паркування', icon: 'Ic2HourlyPark' },
+    { label: 'Паркувальні абонементи', icon: 'Ic2MonthPark' },
+    { label: 'Штрафи', icon: 'Ic2Fine' },
+    { label: 'Евакуація', icon: 'Ic2Evacuation' },
+  ] },
+  { title: 'Активне дозвілля', items: [
+    { label: 'Адопція тварин', icon: 'Ic2Pets' },
+    { label: 'Незалежні', icon: 'Ic2FlagUa' },
+    { label: 'Ярмарки', icon: 'Ic2Markets' },
+  ] },
+  { title: 'Адміністративні послуги', items: [
+    { label: 'Запис до ЦНАП', icon: 'Ic2Tsnap' },
+  ] },
+  { title: 'Електронна демократія', items: [
+    { label: 'Петиції', icon: 'Ic2Petition' },
+    { label: 'Опитування', icon: 'Ic2Poll' },
+    { label: 'ОСББ', icon: 'Ic2Osbb' },
+    { label: 'Мій депутат', icon: 'Ic2Deputat' },
+  ] },
+  { title: 'Комунальні послуги', items: [
+    { label: 'Оплата комуналки', icon: 'Ic2Utilities' },
+    { label: 'ДТЕК Світло', icon: 'Ic2Dtek' },
+    { label: 'Стан енергосистеми', icon: 'Ic2Light' },
+  ] },
+  { title: 'Допомога', items: [
+    { label: 'Донація крові', icon: 'Ic2DonationBlood' },
+    { label: 'Відновлення будинків', icon: 'Ic2BrokenBuilding' },
+  ] },
+  { title: 'Мапи', items: [
+    { label: 'Мапа стійкості', icon: 'Ic2Shelter' },
+    { label: 'Мапа вбиралень', icon: 'Ic2Wc' },
+    { label: 'Психологічна підтримка', icon: 'Ic2Mental' },
+    { label: 'Мапа доступності', icon: 'Ic2Disabled' },
+    { label: 'Стан повітря', icon: 'Ic2Air' },
+    { label: 'Сортування сміття', icon: 'Ic2Zerowaste' },
+    { label: 'Веломапа', icon: 'Ic2Bikes' },
+    { label: 'Ремонти та перекриття', icon: 'Ic2Roads' },
+  ] },
+];
+// «Корисні посилання» is a Cell list in both views.
+const USEFUL_LINKS = {
+  title: 'Корисні посилання',
+  items: [
+    { label: 'Допомогти армії', icon: 'Ic2Help' },
+    { label: 'Стати волонтером', icon: 'Ic2Volunteer' },
+    { label: 'Знайомитися з містом', icon: 'Ic2Events' },
+    { label: 'Долучитися до спільноти', icon: 'Ic2Community' },
+  ],
+};
+const ALL_SERVICES = [...SERVICE_GROUPS, USEFUL_LINKS].flatMap((g) => g.items);
+
+// Home feed. Figma draws a placeholder glyph in every disc; here each entry gets the set icon that matches it.
+// The group «7 жовтня» is not in the frame: repeated entries so the screen is long enough to scroll and collapse the bar.
+const OUTAGE = { icon: 'Ic2Utilities', title: 'Відключення гарячої води', description: 'У Шевченківському районі строком на 14 днів', wrap: true };
+const TICKET = { icon: 'Ic2Qr', title: 'Е-квиток', description: 'Поповнення квитка на 8 поїздок' };
+const FEED = [
+  { day: 'Сьогодні', items: [
+    { icon: 'Ic2FlagUa', title: 'З Днем Незалежності!', description: 'Привітання Володимира Кличка' },
+    OUTAGE,
+    TICKET,
+  ] },
+  { day: '10 жовтня', items: [TICKET, OUTAGE] },
+  { day: '7 жовтня', items: [OUTAGE, TICKET, TICKET] },
+];
+
+const includes = (text, query) => text.toLowerCase().includes(query.trim().toLowerCase());
+
+/* ---------- Custom pieces: free in shape, disciplined in tokens. ---------- */
+
+/* custom: CollapsingTab — Figma 4062:2418 (collapsed bar over scrolling content).
+   The expanded NavbarMain lives inside the scroll area (mark it with data-expanded-bar) and scrolls away with the content.
+   The collapsed one (`collapsedBar`) floats on top and appears once the expanded bar has scrolled out:
+   scrollTop >= expandedHeight - collapsedHeight, so the swap happens exactly under the collapsed bar. */
+function CollapsingTab({ collapsedBar, backdrop, initialScroll = 0, children }) {
+  const scrollRef = React.useRef(null);
+  const barRef = React.useRef(null);
+  const [shown, setShown] = React.useState(false);
+  const update = React.useCallback(() => {
+    const scroll = scrollRef.current;
+    const expanded = scroll && scroll.querySelector('[data-expanded-bar]');
+    if (!scroll || !expanded || !barRef.current) return;
+    setShown(scroll.scrollTop >= expanded.offsetHeight - barRef.current.offsetHeight);
+  }, []);
+  React.useLayoutEffect(() => {
+    if (initialScroll) scrollRef.current.scrollTop = initialScroll;
+    update();
+  }, []);
+  return (
+    <div className="tab">
+      <div className="bar" ref={barRef} data-shown={shown ? 'true' : 'false'} aria-hidden={shown ? undefined : true}>{collapsedBar}</div>
+      <div className="scroll" ref={scrollRef} onScroll={update}>
+        <div className={'scroll-body ' + (backdrop || '')}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* custom: FeedSheet — Figma 4062:2990 (the rounded feed sheet that rides over the blue Home header) */
+function FeedSheet({ children }) {
+  return <div className="feed-sheet">{children}</div>;
+}
+
+/* custom: FeedCellWrapped — Figma 4062:2994 (FeedCell whose description wraps to two lines, 72px; FeedCell itself truncates to one) */
+function FeedCellWrapped({ icon, title, description, onClick }) {
+  return (
+    <button type="button" className="feed-wrapped" onClick={onClick}>
+      <span className="feed-disc"><Icon name={icon} size={24} /></span>
+      <span className="feed-text">
+        <span className="subheadline-emphasized">{title}</span>
+        <span className="footnote feed-desc">{description}</span>
+      </span>
+      <span className="feed-chevron" aria-hidden="true"><Icon name="Ic2Chevron" size={20} /></span>
+    </button>
+  );
+}
+
+/* custom: ValueCell — Figma 4062:2436 (settings row with a trailing value and the up-down selector; Cell has no such accessory) */
+function ValueCell({ icon, label, value, onClick }) {
+  return (
+    <button type="button" className="value-cell" onClick={onClick} aria-label={label + ': ' + value}>
+      <Icon name={icon} size={24} />
+      <span className="label subheadline-emphasized">{label}</span>
+      <span className="value footnote">{value}</span>
+      <span className="selector" aria-hidden="true"><Icon name="Ic2Selector" size={20} /></span>
+    </button>
+  );
+}
+
+/* custom: RightsFooter — Figma 4062:2404 (owner strip at the end of Profile: crest, department name, partner logo) */
+function RightsFooter() {
+  return (
+    <div className="rights">
+      <div className="rights-org">
+        {/* crest of the city: a raster asset in Figma, not available here */}
+        <div className="placeholder-img crest" role="img" aria-label="Герб міста (зображення)" />
+        <p className="rights-text">Департамент інформаційно-комунікаційних технологій ВО КМР (КМДА)</p>
+      </div>
+      {/* partner logo (ГІОЦ): a vector asset in Figma, not available here */}
+      <div className="placeholder-img partner-logo" role="img" aria-label="Логотип партнера (зображення)" />
+    </div>
+  );
+}
+
+/* custom: Section — Figma 4062:2385 (services-group in the grid view: ListCaption, 8px, then the tile grid; each tile is its own surface).
+   A captioned list block is the system Card with `caption` (Figma 4062:2377 / 4062:2385), not this. */
+function Section({ title, children }) {
+  return (
+    <section className="section">
+      <ListCaption label={title} />
+      {children}
+    </section>
+  );
+}
+
+/* ---------- Screens ---------- */
+
+function QuickRow() {
+  return (
+    <div className="quick">
+      <QuickAccessItem type="all" label="Міські сервіси" onClick={noop} />
+      <QuickAccessItem type="qr-active" label="QR-квитки" status="(5 шт.)" onClick={noop} />
+      <QuickAccessItem label="Евакуація" icon="Ic2Evacuation" onClick={noop} />
+      <QuickAccessItem label="Погодинне паркування" icon="Ic2HourlyPark" onClick={noop} />
+    </div>
+  );
+}
+
+function FeedGroups() {
+  return FEED.map((group) => (
+    <div key={group.day}>
+      <FeedDate label={group.day} />
+      <div className="feed-cells">
+        {group.items.map((item, i) => (
+          item.wrap
+            ? <FeedCellWrapped key={i} icon={item.icon} title={item.title} description={item.description} onClick={noop} />
+            : <FeedCell key={i} icon={item.icon} title={item.title} description={item.description} onClick={noop} />
+        ))}
+      </div>
+    </div>
+  ));
+}
+
+/* Home: blue header with the quick-access row, then the feed sheet. Tap «Пошук» for the search state. */
+function HomeScreen() {
+  const [searching, setSearching] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+  const found = ALL_SERVICES.filter((s) => includes(s.label, query));
+  const closeSearch = () => { setQuery(''); setSearching(false); };
+  const weather = { temperature: '23°', weatherIcon: 'Ic2Sun', aqi: 47, avatar: 'sample' };
+
+  if (searching) {
+    return (
+      <div className="tab">
+        <div className="top">
+          <NavbarMain type="home" scrolled {...weather} onAvatarClick={noop} onWeatherClick={noop} onAqiClick={noop} onPowerStatusClick={noop} />
+          <div className="blue">
+            <Search autoFocus value={query} onChange={setQuery} onClear={() => setQuery('')} onCancel={closeSearch} />
+          </div>
+        </div>
+        <div className="scroll">
+          <div className="search-results">
+            {found.length > 0 ? (
+              <Card padding="list">
+                {found.map((s) => <Cell key={s.label} label={s.label} icon={<Icon name={s.icon} />} accessory="chevron" onClick={noop} />)}
+              </Card>
+            ) : (
+              <p className="subheadline empty">Нічого не знайдено. Перевірте назву послуги.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <CollapsingTab
+      backdrop="backdrop-blue"
+      collapsedBar={<NavbarMain type="home" scrolled {...weather} onAvatarClick={noop} onWeatherClick={noop} onAqiClick={noop} onPowerStatusClick={noop} />}
+    >
+      <div data-expanded-bar>
+        <NavbarMain
+          type="home" scrolled={false} date="Понеділок, 23 жовтня" greeting="Добрий день!" {...weather}
+          onSearch={() => setSearching(true)} onAvatarClick={noop} onWeatherClick={noop} onAqiClick={noop} onPowerStatusClick={noop}
+        />
+      </div>
+      <div className="home-slot" />
+      <QuickRow />
+      <FeedSheet><FeedGroups /></FeedSheet>
+    </CollapsingTab>
+  );
+}
+
+/* Services: the grid/list toggle lives in both the expanded and the collapsed bar and drives ServiceGridItem tiles or Cell lists. */
+function ServicesScreen({ initialView = 'grid' }) {
+  const [view, setView] = React.useState(initialView);
+  const bar = (scrolled) => <NavbarMain type="services" scrolled={scrolled} view={view} onViewChange={setView} onHomeClick={noop} />;
+  // Grid view: a caption over the tiles. List view: one Card with the caption and the rows.
+  const renderGroup = (g) => (
+    view === 'grid'
+      ? <Section key={g.title} title={g.title}><div className="tiles">{g.items.map((s) => <ServiceGridItem key={s.label} label={s.label} icon={s.icon} onClick={noop} />)}</div></Section>
+      : <Card key={g.title} caption={g.title} padding="list">{g.items.map((s) => <Cell key={s.label} label={s.label} icon={<Icon name={s.icon} />} accessory="chevron" onClick={noop} />)}</Card>
+  );
+  return (
+    <CollapsingTab collapsedBar={bar(true)}>
+      <div data-expanded-bar>{bar(false)}</div>
+      <div className="svc-body">
+        {SERVICE_GROUPS.map(renderGroup)}
+        <Card caption={USEFUL_LINKS.title} padding="list">
+          {USEFUL_LINKS.items.map((s) => <Cell key={s.label} label={s.label} icon={<Icon name={s.icon} />} accessory="chevron" onClick={noop} />)}
+        </Card>
+      </div>
+    </CollapsingTab>
+  );
+}
+
+/* Profile: header card with avatar, name and phone; grouped Cells under ListCaptions; a lone destructive row; version; rights strip. */
+const THEME_CHOICES = ['Системна', 'Світла', 'Темна'];
+
+function ProfileScreen({ withTheme = false, initialScroll = 0 }) {
+  const [lang, setLang] = React.useState(0);
+  const [themeChoice, setThemeChoice] = React.useState(0);
+  const person = { userName: 'Веніамін М.', phone: '+380 12 345 67 89', avatar: 'sample' };
+  return (
+    <CollapsingTab
+      initialScroll={initialScroll}
+      collapsedBar={<NavbarMain type="profile" scrolled {...person} onHomeClick={noop} onEdit={noop} />}
+    >
+      <div data-expanded-bar>
+        <NavbarMain type="profile" scrolled={false} {...person} onHomeClick={noop} onEdit={noop} onAvatarClick={noop} />
+      </div>
+      <div className="profile-body">
+        <Card padding="list">
+          <Cell label="Адреси" icon={<Icon name="Ic2Address" />} accessory="chevron" onClick={noop} />
+          <Cell label="Автомобілі" icon={<Icon name="Ic2Car" />} accessory="chevron" onClick={noop} />
+          <Cell label="Картки" icon={<Icon name="Ic2Card" />} accessory="chevron" onClick={noop} />
+        </Card>
+        <Card padding="list">
+          <Cell label="Розповісти друзям" icon={<Icon name="Ic2ShareIos" />} accessory="chevron" onClick={noop} />
+        </Card>
+        <div className="gap-more">
+          <Card caption="Налаштування" padding="list">
+              <Cell label="Швидкий доступ" icon={<Icon name="Ic2QuickAsscess" />} accessory="chevron" onClick={noop} />
+              <Cell label="Сповіщення" icon={<Icon name="Ic2Notification" />} accessory="chevron" onClick={noop} />
+              <Cell label="Безпека" icon={<Icon name="Ic2Security" />} accessory="chevron" onClick={noop} />
+              <Cell label="Мапи" icon={<Icon name="Ic2Maps" />} accessory="chevron" onClick={noop} />
+              <Cell label="Мова" icon={<Icon name="Ic2Language" />} accessory="segmented" segmentOptions={['Укр', 'En']} segmentValue={lang} onSegmentChange={setLang} />
+              {withTheme && (
+                <ValueCell icon="Ic2Sun" label="Тема" value={THEME_CHOICES[themeChoice]} onClick={() => setThemeChoice((themeChoice + 1) % THEME_CHOICES.length)} />
+              )}
+          </Card>
+        </div>
+        <div className="gap-more">
+          <Card caption="Довідка" padding="list">
+              <Cell label="Часті питання" icon={<Icon name="Ic2Faq" />} accessory="chevron" onClick={noop} />
+              <Cell label="Політика конфіденційності" icon={<Icon name="Ic2Info" />} accessory="chevron" onClick={noop} />
+          </Card>
+        </div>
+        <div className="gap-more">
+          <Card padding="list">
+            <Cell label={<span className="negative">Вийти</span>} onClick={noop} />
+          </Card>
+        </div>
+        <ListCaption label="Версія 3.0.0" />
+      </div>
+      <RightsFooter />
+    </CollapsingTab>
+  );
+}
+
+/* ---------- Page ---------- */
+
+function Demo({ name, id, note, theme, height, children }) {
+  return (
+    <figure className="demo">
+      <figcaption>
+        <span className="footnote-emphasized">{name} <code className="footnote">{id}</code></span>
+        <span className="footnote">{note}</span>
+      </figcaption>
+      <div className="phone" data-theme={theme} style={{ height }}>{children}</div>
+    </figure>
+  );
+}
+
+// One NavbarMain type in both states, side by side with its height, so the swap rule is readable.
+function StateBox({ label, blue, theme, children }) {
+  const ref = React.useRef(null);
+  const [h, setH] = React.useState(0);
+  React.useLayoutEffect(() => { setH(Math.round(ref.current.offsetHeight)); });
+  return (
+    <div className="state">
+      <span className="footnote-emphasized">{label} <span className="footnote muted">{h}px</span></span>
+      <div className={'state-box' + (blue ? ' blue' : '')} data-theme={theme} ref={ref}>{children}</div>
+    </div>
+  );
+}
+
+function NavbarStates({ type, theme, props, blue, rule, children }) {
+  return (
+    <figure className="demo">
+      <figcaption>
+        <span className="footnote-emphasized">NavbarMain states <code className="footnote">type="{type}"</code></span>
+        <span className="footnote">Reference, not a Figma frame. {rule}</span>
+      </figcaption>
+      <div className="states">
+        <StateBox label="scrolled={false}, expanded" blue={blue} theme={theme}><NavbarMain type={type} scrolled={false} {...props} /></StateBox>
+        <StateBox label="scrolled, collapsed" theme={theme}><NavbarMain type={type} scrolled {...props} /></StateBox>
+      </div>
+      <div className="state-note footnote">{children}</div>
+    </figure>
+  );
+}
+
+function Page() {
+  const [theme, setTheme] = React.useState('light');
+  const weather = { temperature: '23°', weatherIcon: 'Ic2Sun', aqi: 47, avatar: 'sample' };
+  const person = { userName: 'Веніамін М.', phone: '+380 12 345 67 89', avatar: 'sample' };
+  const homeText = { date: 'Понеділок, 23 жовтня', greeting: 'Добрий день!' };
+  return (
+    <main className="page">
+      <header className="toolbar">
+        <h1 className="title1-emphasized">Main screens</h1>
+        <div className="switch-slot">
+          <SegmentedControl options={['Світла', 'Темна']} value={theme === 'light' ? 0 : 1} onChange={(v) => setTheme(v === 0 || v === 'Світла' ? 'light' : 'dark')} />
+        </div>
+      </header>
+      <div className="lead-block">
+        <p className="callout lead">The three root tabs of Kyiv Digital as shipped: Home, Services and Profile. Each opens with a large header that collapses into a compact bar when the content scrolls: <code>NavbarMain scrolled={'{false}'}</code> at the top, <code>scrolled</code> once the header has scrolled away. Every frame below is live, so scroll it, flip the grid and list view, search from Home. The switch sets the theme of every frame. There is no tab bar in the system yet: the three tabs are only hinted by the page dots in the Services and Profile bars, so screens simply omit it.</p>
+      </div>
+
+      <section className="tab-section" aria-labelledby="h-home">
+        <div className="tab-intro">
+          <h2 id="h-home" className="title3-emphasized">Home</h2>
+          <p className="callout muted">Blue header (<code>background-bg-accent-home</code>) with the quick-access row on it, then the feed on a rounded sheet. The header scrolls away and a white bar with weather chips, power status and the avatar takes over.</p>
+        </div>
+        <div className="row">
+          <Demo name="1.1 - home" id="4062:2984" theme={theme} height={812}
+            note="Copy: NavbarMain home, QuickAccessItem row, FeedDate, FeedCell, Search. Custom: CollapsingTab, FeedSheet, FeedCellWrapped. Figma draws it light, 375×812; the page adds a third feed group so it can scroll.">
+            <HomeScreen />
+          </Demo>
+          <Demo name="1.1 - home [dark]" id="4062:2961" theme={theme} height={812}
+            note="Same screen. Figma draws this frame dark with an older header (page dots, name, weather row under it); NavbarMain draws the current header in both themes.">
+            <HomeScreen />
+          </Demo>
+          <NavbarStates type="home" theme={theme} props={{ ...homeText, ...weather }} blue
+            rule="Home swaps at scrollTop 81 (180 − 99)."
+          >
+            <p>Expanded is white on the blue: put <code>background-bg-accent-home</code> behind it and behind the quick-access row. Collapsed is a <code>background-bg-surface</code> bar, so nothing blue needs to follow it.</p>
+          </NavbarStates>
+        </div>
+      </section>
+
+      <section className="tab-section" aria-labelledby="h-services">
+        <div className="tab-intro">
+          <h2 id="h-services" className="title3-emphasized">Services</h2>
+          <p className="callout muted">Every city service in captioned groups. The toggle in the bar switches the same groups between a 2-column <code>ServiceGridItem</code> grid and <code>Cell</code> lists; the last group, «Корисні посилання», is a Cell list in both.</p>
+        </div>
+        <div className="row">
+          <Demo name="1.1 - services / grid" id="4062:3551" theme={theme} height={812}
+            note="Copy: NavbarMain services, ListCaption, ServiceGridItem, Cell. Card (list view). Custom: CollapsingTab, Section (caption over the tile grid). Figma frame is 2277px tall: clipped to 812 with an inner scroll.">
+            <ServicesScreen initialView="grid" />
+          </Demo>
+          <Demo name="dark // 1.2 - services / list" id="4062:3616" theme={theme} height={812}
+            note="Same screen, list view first. Figma draws it dark and 2485px tall: clipped to 812 with an inner scroll. The toggle works in both frames.">
+            <ServicesScreen initialView="list" />
+          </Demo>
+          <NavbarStates type="services" theme={theme} props={{}}
+            rule="Services swaps at scrollTop 51 (150 − 99)."
+          >
+            <p>Both bars carry the grid/list toggle, so pass the same <code>view</code> and <code>onViewChange</code> to both. Expanded shows the large title «Міські сервіси»; collapsed shows «Сервіси» and a round button back to Home.</p>
+          </NavbarStates>
+        </div>
+      </section>
+
+      <section className="tab-section" aria-labelledby="h-profile">
+        <div className="tab-intro">
+          <h2 id="h-profile" className="title3-emphasized">Profile</h2>
+          <p className="callout muted">Header card with avatar, name, phone and «Змінити», then grouped <code>Cell</code>s on the gray page. Groups without a caption stand alone; «Вийти» is a lone row with a negative label. The owner strip closes the scroll.</p>
+        </div>
+        <div className="row">
+          <Demo name="1.1 - profile" id="4062:2374" theme={theme} height={1153}
+            note="Copy: NavbarMain profile, ListCaption, Cell (chevron, segmented). Card with caption. Custom: CollapsingTab, RightsFooter. Full 1153px height, so the bar stays expanded.">
+            <ProfileScreen />
+          </Demo>
+          <Demo name="1.2 - profile [scrolled]" id="4062:2418" theme={theme} height={812}
+            note="Same screen, scrolled under the collapsed bar as Figma draws it, plus the «Тема» row. Custom: ValueCell. Scroll up and the header expands.">
+            <ProfileScreen withTheme initialScroll={171} />
+          </Demo>
+          <NavbarStates type="profile" theme={theme} props={person}
+            rule="Profile swaps at scrollTop 80 (179 − 99)."
+          >
+            <p>Expanded is the profile card on <code>background-bg-surface</code> with a hairline under it; collapsed keeps the name as the title between a round back button and a round edit button.</p>
+          </NavbarStates>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

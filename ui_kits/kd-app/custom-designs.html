@@ -1,0 +1,847 @@
+<!-- @dsCard group="KD App (iOS)" page height=2466 width=1270 subtitle="Mini-apps inside Kyiv Digital: where screens leave the standard layouts" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom designs</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  /* One-off values the Figma frames draw that are NOT system tokens. Everything else below is a token, a type class or a public component.
+     Declared on .phone, not :root, so each value is resolved inside the frame's own data-theme. */
+  :root { --phone-w: 375px; }
+  .phone {
+    --status-bar: 54px;             /* the system navbar's status area; Figma's status-bar frame 4067:6518 is 62px (54 plus 8 of air), see --status-inset */
+    --status-inset: 62px;           /* from Figma, not a system token: sheet and toolbar start below the status bar, 4067:6531 */
+    --sheet-radius: 38px;           /* from Figma, not a system token: radiation sheet top corners, 4067:6531 */
+    --glass-card-radius: 34px;      /* from Figma, not a system token: parking glass card, 4067:7395 */
+    --glass-blur: 20px;             /* from Figma, not a system token: blur behind glass buttons and the card, 4067:7396 */
+    --glass-fill: color-mix(in srgb, var(--background-bg-surface) 78%, transparent);  /* from Figma, not a system token: glass tint, built from a system surface */
+    --zone-fill: color-mix(in srgb, var(--neutral-neutral-gray60) 30%, transparent);  /* from Figma, not a system token: parking zone on the map, 4067:7389 */
+    --cover-w-lg: 104px;            /* from Figma, not a system token: shelf book cover, 4067:5208 */
+    --cover-h-lg: 160px;            /* from Figma, not a system token: shelf book cover, 4067:5208 */
+    --cover-w-sm: 88px;             /* from Figma, not a system token: cover inside the Top-10 card, 4067:5180 */
+    --cover-h-sm: 135px;            /* from Figma, not a system token: cover inside the Top-10 card, 4067:5180 */
+    --pin-shadow: 0 4px 9px rgba(0, 0, 0, 0.24);  /* from Figma, not a system token: selected map pin, 4067:7386 */
+    --map-fade: linear-gradient(to bottom, var(--background-bg-background), transparent);  /* from Figma, not a system token: Scroll Edge Effect - Soft, 4067:6517 */
+    --overlay-blur: 32px;           /* from Figma, not a system token: search overlay blur, 4067:8263 */
+    --overlay-pad: 20px;            /* from Figma, not a system token: padding of the overlay sections, 4067:8272 */
+    --overlay-ink: var(--neutral-neutral-white);            /* the scrim is dark in both themes, so inks on it are fixed whites */
+    --overlay-ink-muted: var(--neutral-neutral-white-80);
+    --overlay-line: var(--neutral-neutral-white-20);
+  }
+  .phone[data-theme="light"] {
+    --overlay-tint: rgba(0, 0, 0, 0.64);   /* from Figma, not a system token: dark scrim of the search overlay, 4067:8263 */
+    --glass-edge: color-mix(in srgb, var(--neutral-neutral-white) 70%, transparent);  /* from Figma, not a system token: glass rim */
+  }
+  .phone[data-theme="dark"] {
+    --overlay-tint: rgba(0, 0, 0, 0.72);   /* not drawn in Figma: a deeper scrim because the dark Home behind it is already muted */
+    --glass-edge: color-mix(in srgb, var(--neutral-neutral-white) 16%, transparent);
+  }
+
+  /* Page chrome around the phones (English). Everything inside .phone is components plus the helpers below, all on tokens. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 3 + var(--space-5) * 4 + var(--space-5) * 2); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page h2, .page p { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-2); }
+  .intro p { max-width: 760px; }
+  .switch-row { display: flex; align-items: center; gap: var(--space-3); }
+  .switch-row .seg { width: 220px; }
+  .board { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); align-items: start; }
+  .board-col { display: flex; flex-direction: column; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; gap: var(--space-1); }
+  .muted { color: var(--content-content-secondary); }
+  .rules { box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-card); background: var(--background-bg-subtle); }
+  .rules h2 { margin: 0; }
+  .rules ul { margin: 0; padding-left: var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
+  @media (max-width: 480px) { .page { padding: var(--space-4) 0; } .intro, .switch-row, .demo figcaption, .rules { padding-left: var(--space-4); padding-right: var(--space-4); } }
+
+  /* The phone: a plain 375 frame. data-theme on it switches every token inside. No device chrome: the navbars draw the status bar. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); overflow: hidden; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .screen { position: relative; display: flex; flex-direction: column; height: 100%; }
+  .top { flex: none; }
+  .scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .hscroll { display: flex; gap: var(--space-2); overflow-x: auto; margin: 0 calc(var(--space-4) * -1); padding: 0 var(--space-4); scrollbar-width: none; }
+  .hscroll::-webkit-scrollbar { display: none; }
+  .hscroll > * { flex: none; }
+  .secondary { color: var(--content-content-secondary); }
+  .heading { margin: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  /* Widens a small control's tap area to 44px or more without moving it. */
+  .tap { position: relative; }
+  .tap::after { content: ""; position: absolute; top: calc(var(--space-3) * -1); right: calc(var(--space-3) * -1); bottom: calc(var(--space-3) * -1); left: calc(var(--space-3) * -1); }
+  .nav-icon { all: unset; position: relative; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: var(--content-content-primary); cursor: pointer; border-radius: var(--radius-sm); }
+  .nav-icon:focus-visible, .action-row:focus-visible, .glass:focus-visible, .ov-row:focus-visible, .ov-chip:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+
+  /* Status tones shared by dots, pills and slots. */
+  .tone-positive { background: var(--background-bg-positive); }
+  .tone-negative { background: var(--background-bg-negative); }
+  .tone-warning { background: var(--background-bg-warning); }
+  .tone-caution { background: var(--vibrant-vibrant-yellow); }
+  .tone-power-on { background: var(--chart-chart-power-on); }
+  .tone-power-off { background: var(--chart-chart-power-off); }
+  .tone-power-possible { background: var(--chart-chart-power-possible); }
+  .dot { flex: none; box-sizing: border-box; width: 16px; height: 16px; border-radius: var(--radius-pill); border: 1px solid var(--border-border-regular); }
+
+  /* 1. Power schedule */
+  .power-body { display: flex; flex-direction: column; padding: var(--space-5) var(--space-4); }
+  .mt-2 { margin-top: var(--space-2); }
+  .mt-5 { margin-top: var(--space-5); }
+  .status-card { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
+  .status-text { display: flex; flex-direction: column; gap: var(--space-1); }
+  .badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-radius: var(--radius-pill); color: var(--content-content-primary-invert); }
+  .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); }
+  .slot { box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: var(--space-1); height: 48px; padding: 0 var(--space-2); border: 1px solid var(--border-border-regular); border-radius: var(--radius-sm); color: var(--content-content-primary); white-space: nowrap; }
+  .slot.tone-power-off { color: var(--content-content-primary-invert); }
+  .glyph { display: block; flex: none; }
+  .glyph-on { color: var(--vibrant-vibrant-yellow); }
+  .glyph-off { color: var(--content-content-primary-invert); }
+  .legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .legend li { display: flex; align-items: center; gap: var(--space-2); }
+  .action-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-3); width: 100%; height: 48px; padding: var(--space-3) var(--space-4); cursor: pointer; }
+  .action-row > span { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .action-link { color: var(--content-content-link); }
+  .action-negative { color: var(--content-content-negative); }
+
+  /* 2. Library */
+  .library-body { display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-6) var(--space-4); }
+  .block { display: flex; flex-direction: column; gap: var(--space-3); }
+  .pill-search { box-sizing: border-box; display: flex; align-items: center; gap: var(--space-2); min-height: 48px; padding: var(--space-3); border-radius: var(--radius-pill); background: var(--background-bg-secondary-cta); color: var(--content-content-primary); }
+  .pill-search:focus-within { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+  .pill-input { flex: 1 1 auto; min-width: 0; border: 0; margin: 0; padding: 0; outline: 0; background: transparent; color: inherit; -webkit-appearance: none; appearance: none; }
+  .pill-input::placeholder { color: var(--content-content-secondary); opacity: 1; }
+  .pill-input::-webkit-search-cancel-button, .pill-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+  .chips { flex-direction: column; align-items: flex-start; }
+  .chip-line { display: flex; gap: var(--space-2); flex: none; }
+  .shelf-head { display: flex; align-items: center; justify-content: space-between; height: 25px; }
+  .shelf { align-items: flex-start; }
+  .book { display: flex; flex-direction: column; gap: var(--space-2); width: var(--cover-w-lg); }
+  .book-title { margin: 0; }
+  .cover { --cover-w: var(--cover-w-lg); --cover-h: var(--cover-h-lg); position: relative; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; flex: none; width: var(--cover-w); height: var(--cover-h); padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4); border-radius: var(--radius-sm); overflow: hidden; background: var(--cover-bg); color: var(--cover-title); }
+  .cover::before, .cover::after { content: ""; position: absolute; top: 0; bottom: 0; background: var(--cover-spine); }
+  .cover::before { left: 0; width: 6px; }
+  .cover::after { left: 8px; width: 2px; }
+  .cover-sm { --cover-w: var(--cover-w-sm); --cover-h: var(--cover-h-sm); }
+  .cover-mark { display: flex; color: var(--cover-author); }
+  .cover-text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+  .cover-title { margin: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; color: var(--cover-title); }
+  .cover-author { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--cover-author); }
+  .cover-photo { background: var(--background-bg-subtle); border: 1px solid var(--border-border-regular); }
+  .cover-photo::before, .cover-photo::after { display: none; }
+  .top-card { box-sizing: border-box; display: flex; gap: var(--space-4); width: 311px; padding: var(--space-4); border-radius: var(--radius-control); background: var(--background-bg-surface); }
+  .top-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  .top-text h3, .top-text p { margin: 0; }
+  .top-status { display: flex; align-items: center; gap: var(--space-2); }
+  .empty { margin: 0; }
+
+  /* 3 and 4. Map screens */
+  .map-ph { position: absolute; inset: 0; display: flex; justify-content: center; align-items: flex-start; padding-top: 330px; background: var(--background-bg-subtle); color: var(--content-content-secondary); }
+  .map-fade { position: absolute; left: 0; right: 0; top: 0; height: 200px; background: var(--map-fade); pointer-events: none; }
+  .map-fade-short { height: 144px; }
+  .status-zone { position: absolute; left: 0; right: 0; top: 0; height: var(--status-bar); overflow: hidden; pointer-events: none; z-index: 3; }
+  .glass { all: unset; position: relative; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); min-width: 44px; height: 44px; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--glass-fill); -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-elevation); color: var(--content-content-primary); cursor: pointer; }
+  .glass-small { min-width: 0; height: 32px; padding: 0 var(--space-3); }
+  .glass-pill { padding: 0 var(--space-3) 0 var(--space-2); }
+  .glass-warning { color: var(--content-content-warning); }
+  .glass-label { color: var(--content-content-primary); }
+  .grabber { flex: none; align-self: center; width: 36px; height: 5px; border-radius: var(--radius-pill); background: var(--background-bg-disabled); }
+  .divider { flex: none; height: 1px; background: var(--border-border-regular); }
+
+  .map-sheet { position: absolute; left: 0; right: 0; bottom: 0; top: var(--status-inset); z-index: 2; display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-2); border-radius: var(--sheet-radius) var(--sheet-radius) 0 0; background: var(--background-bg-surface); overflow: hidden; }
+  .sheet-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: var(--space-3); padding: 0 var(--space-4) var(--space-6); }
+  .sheet-scroll::-webkit-scrollbar { display: none; }
+  .sheet-head { padding: var(--space-2) 0; display: flex; flex-direction: column; gap: var(--space-1); }
+  .sheet-head h2, .sheet-head p { margin: 0; }
+  .station { display: flex; align-items: center; gap: var(--space-2); min-height: 40px; }
+  .station-name { flex: 1 1 auto; min-width: 0; }
+  .value-pill { position: relative; flex: none; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; min-width: 64px; height: 40px; padding: 0 var(--space-2); border-radius: var(--radius-pill); color: var(--content-content-primary-invert); box-shadow: var(--shadow-elevation); }
+  .level-info { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) 0; }
+  .level-info h3, .level-info p { margin: 0; }
+  .level-range { display: flex; align-items: center; gap: var(--space-2); padding-bottom: var(--space-1); }
+
+  .map-toolbar { position: absolute; left: 0; right: 0; top: var(--status-inset); z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; padding: 0 var(--space-4); }
+  .map-title { position: absolute; left: 50%; top: var(--space-3); transform: translateX(-50%); margin: 0; white-space: nowrap; }
+  .pin { position: absolute; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 2px solid var(--neutral-neutral-white-40); border-radius: var(--radius-pill); color: var(--neutral-neutral-white); white-space: nowrap; z-index: 1; }
+  .pin-price { background: var(--neutral-neutral-gray70); }
+  .pin-cluster { background: var(--vibrant-vibrant-dark-blue); }
+  .pin-ring { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--neutral-neutral-white-5); }
+  .pin-ring > span { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--radius-pill); background: var(--neutral-neutral-white-20); }
+  .pin-selected { background: var(--vibrant-vibrant-blue); border: 6px solid var(--neutral-neutral-white); box-shadow: var(--pin-shadow); z-index: 2; }
+  .pin-selected::after { content: ""; position: absolute; left: 50%; bottom: -13px; width: 13px; height: 11px; transform: translateX(-50%); background: var(--neutral-neutral-white); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .zone { position: absolute; box-sizing: border-box; background: var(--zone-fill); border: 1px solid var(--neutral-neutral-gray60); }
+  .zone-selected { background: var(--background-bg-accent-subtle); border-color: var(--border-border-accent); }
+  .map-bottom { position: absolute; left: 0; right: 0; bottom: var(--space-4); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: 0 var(--space-2); }
+  .glass-card { box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-2) var(--space-4) var(--space-4); border-radius: var(--glass-card-radius); background: var(--glass-fill); -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-elevation); }
+  .card-head { display: flex; align-items: center; gap: var(--space-3); }
+  .card-head-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+  .card-head-text span { margin: 0; }
+  .mark-ph { flex: none; width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--background-bg-subtle); border: 1px solid var(--border-border-regular); box-sizing: border-box; }
+  .kv { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+  .kv li { display: flex; align-items: center; gap: var(--space-2); }
+  .kv-label { flex: 1 1 auto; min-width: 0; }
+  .kv-value { flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+  .glyph-gap { flex: none; width: 20px; height: 20px; }
+
+  /* 5. Search overlay */
+  .home-behind { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--background-bg-accent-home); }
+  .home-row { display: flex; gap: var(--space-2); padding: var(--space-4); overflow: hidden; }
+  .home-row > * { flex: none; }
+  .home-feed { flex: 1 1 auto; padding: var(--space-4) 0; border-radius: var(--radius-card) var(--radius-card) 0 0; background: var(--background-bg-background); overflow: hidden; }
+  .overlay { position: absolute; inset: 0; -webkit-backdrop-filter: blur(var(--overlay-blur)); backdrop-filter: blur(var(--overlay-blur)); background: var(--overlay-tint); }
+  .over-content { position: absolute; inset: 0; display: flex; flex-direction: column; padding-top: var(--status-bar); color: var(--overlay-ink); }
+  .ov-chips { flex: none; display: flex; gap: var(--space-2); padding: var(--space-4); border-bottom: 1px solid var(--overlay-line); overflow-x: auto; scrollbar-width: none; }
+  .ov-chips::-webkit-scrollbar { display: none; }
+  .ov-chip { all: unset; position: relative; flex: none; box-sizing: border-box; display: inline-flex; align-items: center; height: 32px; padding: 0 var(--space-3); border-radius: var(--radius-pill); background: var(--background-bg-subtle-invert); color: var(--overlay-ink-muted); cursor: pointer; white-space: nowrap; }
+  .ov-chip.is-on { background: var(--background-bg-surface-invert); color: var(--neutral-neutral-gray100); }
+  .ov-section { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--overlay-pad) var(--space-4); border-bottom: 1px solid var(--overlay-line); }
+  .ov-caption { margin: 0; padding: var(--space-1) 0; color: var(--overlay-ink-muted); }
+  .ov-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 48px; padding: var(--space-3) 0; color: var(--overlay-ink); cursor: pointer; }
+  .ov-row .ov-label { flex: 1 1 auto; min-width: 0; }
+  .ov-tile { flex: none; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; margin: calc(var(--space-3) * -1) 0; border-radius: var(--radius-control); background: var(--background-bg-subtle-invert); }
+  .ov-services { gap: var(--space-4); }
+  .ov-services .ov-row { padding: 0; }
+  .ov-chevron { flex: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {
+  Button, Cell, ListCaption, NavbarRegular, NavbarEnhanced, NavbarMain, SegmentedControl, Search,
+  QuickAccessItem, FeedDate, FeedCell, Icon,
+} = window.KyivDigitalDesignSystem_728336;
+const { useState } = React;
+const { Card } = window.KyivDigitalDesignSystem_728336; // the system surface block
+
+const noop = () => {};
+const includes = (text, query) => text.toLowerCase().includes(query.trim().toLowerCase());
+/* A Button's inline `all: unset` resets its position: set it back so the .tap area is anchored to the button itself. */
+const TAP = { position: 'relative' };
+
+/* custom: LightGlyph — Figma 1705:636 (ic2_light on / off, 16px; drawn inside the system but not in the public Icon set) */
+function LightGlyph({ on }) {
+  return on ? (
+    <svg className="glyph glyph-on" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path transform="translate(3.333 2)" d="M 5.333 0 L 5.333 4.667 L 9.333 4.667 L 4 12 L 4 7.333 L 0 7.333 L 5.333 0 Z" fill="currentColor" />
+    </svg>
+  ) : (
+    <svg className="glyph glyph-off" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path transform="translate(2 2)" d="M 0.354 -0.354 C 0.158 -0.549 -0.158 -0.549 -0.354 -0.354 C -0.549 -0.158 -0.549 0.158 -0.354 0.354 L 0 0 L 0.354 -0.354 Z M 11.646 12.354 C 11.842 12.549 12.158 12.549 12.354 12.354 C 12.549 12.158 12.549 11.842 12.354 11.646 L 12 12 L 11.646 12.354 Z M 0 0 L -0.354 0.354 L 11.646 12.354 L 12 12 L 12.354 11.646 L 0.354 -0.354 L 0 0 Z" fill="currentColor" />
+      <path transform="translate(3.333 2)" d="M 7.212 8.434 C 7.375 8.211 7.325 7.898 7.102 7.736 C 6.879 7.573 6.566 7.623 6.404 7.846 L 6.808 8.14 L 7.212 8.434 Z M 4 12 L 3.5 12 C 3.5 12.217 3.639 12.409 3.845 12.475 C 4.051 12.542 4.277 12.469 4.404 12.294 L 4 12 Z M 4 7.333 L 4.5 7.333 C 4.5 7.057 4.276 6.833 4 6.833 L 4 7.333 Z M 0 7.333 L -0.404 7.039 C -0.515 7.191 -0.531 7.393 -0.446 7.56 C -0.36 7.728 -0.188 7.833 0 7.833 L 0 7.333 Z M 2.931 4.154 C 3.093 3.931 3.044 3.618 2.821 3.456 C 2.597 3.293 2.285 3.343 2.122 3.566 L 2.527 3.86 L 2.931 4.154 Z M 3.246 2.019 C 3.083 2.242 3.133 2.555 3.356 2.718 C 3.579 2.88 3.892 2.831 4.054 2.608 L 3.65 2.313 L 3.246 2.019 Z M 5.333 0 L 5.833 0 C 5.833 -0.217 5.694 -0.408 5.488 -0.475 C 5.282 -0.542 5.056 -0.469 4.929 -0.294 L 5.333 0 Z M 4.833 4 C 4.833 4.276 5.057 4.5 5.333 4.5 C 5.609 4.5 5.833 4.276 5.833 4 L 5.333 4 L 4.833 4 Z M 6 4.167 C 5.724 4.167 5.5 4.391 5.5 4.667 C 5.5 4.943 5.724 5.167 6 5.167 L 6 4.667 L 6 4.167 Z M 9.333 4.667 L 9.738 4.961 C 9.848 4.809 9.864 4.607 9.779 4.44 C 9.694 4.272 9.521 4.167 9.333 4.167 L 9.333 4.667 Z M 7.526 6.301 C 7.364 6.525 7.413 6.837 7.637 7 C 7.86 7.162 8.173 7.113 8.335 6.889 L 7.931 6.595 L 7.526 6.301 Z M 6.808 8.14 L 6.404 7.846 L 3.596 11.706 L 4 12 L 4.404 12.294 L 7.212 8.434 L 6.808 8.14 Z M 4 12 L 4.5 12 L 4.5 7.333 L 4 7.333 L 3.5 7.333 L 3.5 12 L 4 12 Z M 4 7.333 L 4 6.833 L 0 6.833 L 0 7.333 L 0 7.833 L 4 7.833 L 4 7.333 Z M 0 7.333 L 0.404 7.627 L 2.931 4.154 L 2.527 3.86 L 2.122 3.566 L -0.404 7.039 L 0 7.333 Z M 3.65 2.313 L 4.054 2.608 L 5.738 0.294 L 5.333 0 L 4.929 -0.294 L 3.246 2.019 L 3.65 2.313 Z M 5.333 0 L 4.833 0 L 4.833 4 L 5.333 4 L 5.833 4 L 5.833 0 L 5.333 0 Z M 6 4.667 L 6 5.167 L 9.333 5.167 L 9.333 4.667 L 9.333 4.167 L 6 4.167 L 6 4.667 Z M 9.333 4.667 L 8.929 4.373 L 7.526 6.301 L 7.931 6.595 L 8.335 6.889 L 9.738 4.961 L 9.333 4.667 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/* ---------- 1. Power schedule ---------- */
+
+const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+const SLOT_WORD = { on: 'є світло', off: 'немає світла', possible: 'можливе відключення' };
+// Sample data. Monday is the Figma sample; the other days are the same pattern shifted, so the control visibly changes the chart.
+const MONDAY = ['on', 'on', 'off', 'off', 'off', 'off', 'possible', 'possible', 'on', 'on', 'on', 'on', 'off', 'off', 'off', 'off', 'possible', 'possible', 'on', 'on', 'on', 'on', 'off', 'off'];
+const slotsFor = (dayIndex) => MONDAY.map((_, hour) => MONDAY[(hour + dayIndex * 3) % 24]);
+
+/* custom: TimeSlot — Figma 4067:4663 (one hour of the outage chart; state = on / off / possible, never colour alone) */
+function TimeSlot({ hour, state }) {
+  const label = String(hour).padStart(2, '0') + ':00';
+  return (
+    <div className={'slot tone-power-' + state} role="img" aria-label={label + ', ' + SLOT_WORD[state]}>
+      {state !== 'possible' && <LightGlyph on={state === 'on'} />}
+      <span className="footnote">{label}</span>
+    </div>
+  );
+}
+
+/* custom: ActionRow — Figma 4067:4699 (a Cell whose label is a link or a destructive action; Cell has no tone prop) */
+function ActionRow({ icon, label, tone, onClick }) {
+  return (
+    <button type="button" className={'action-row action-' + tone} onClick={onClick}>
+      <Icon name={icon} size={24} />
+      <span className="subheadline-emphasized">{label}</span>
+    </button>
+  );
+}
+
+function PowerScreen() {
+  const [day, setDay] = useState(0);
+  const [notify, setNotify] = useState(false);
+  const [quick, setQuick] = useState(true);
+  const slots = slotsFor(day);
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular variant="two-icons" title="Графік відключень" onBack={noop} trailingAction={{ icon: 'Ic2Info', label: 'Про графік відключень', onClick: noop }} />
+      </div>
+      <div className="scroll">
+        <div className="power-body">
+          {/* custom: StatusCard — Figma 4067:4636 (address, group and a coloured status badge) */}
+          <Card elevated={false} className="status-card">
+            <div className="status-text">
+              <span className="footnote secondary">ДТЕК ⋅ 2 група</span>
+              <span className="headline">просп. Перемоги 10-Б, 127</span>
+            </div>
+            <span className="badge tone-positive"><LightGlyph on /><span className="caption1-emphasized">до 13:00 є світло</span></span>
+          </Card>
+
+          <Card gap={4} className="mt-5">
+            <SegmentedControl options={DAYS} value={day} onChange={setDay} />
+            <div className="slots" role="group" aria-label={'Графік відключень, ' + DAYS[day]}>
+              {slots.map((state, hour) => <TimeSlot key={hour} hour={hour} state={state} />)}
+            </div>
+            <ul className="legend">
+              {['on', 'off', 'possible'].map((state) => (
+                <li key={state}><span className={'dot tone-power-' + state} aria-hidden="true" /><span className="footnote">{SLOT_WORD[state]}</span></li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card padding="list" elevated={false} className="mt-2">
+            <ActionRow icon="Ic2FileDownload" label="Завантажити графік відключень" tone="link" onClick={noop} />
+          </Card>
+
+          <Card padding="list" elevated={false} className="mt-5">
+            <Cell label="Сповіщення про світло" icon={<Icon name="Ic2Notification" />} accessory="switch" checked={notify} onCheckedChange={setNotify} />
+            <Cell label="Швидкий доступ" icon={<Icon name="Ic2QuickAsscess" />} accessory="switch" checked={quick} onCheckedChange={setQuick} />
+          </Card>
+
+          <div className="mt-5"><ListCaption label="Графік не відповідає дійсності?" /></div>
+          <Card padding="list" elevated={false}>
+            <ActionRow icon="Ic2Chat" label="Повідомити в ДТЕК" tone="link" onClick={noop} />
+          </Card>
+
+          <Card padding="list" elevated={false} className="mt-5">
+            <ActionRow icon="Ic2Delete" label="Видалити адресу" tone="negative" onClick={noop} />
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- 2. Library ---------- */
+
+// Sample data: titles and authors are the ones drawn in Figma. A photographed cover has no author line (the photo carries it).
+const TOP_10 = [
+  { title: 'Тигролови', author: 'Іван Багряний', note: 'Доступна у 3 бібліотеках', tone: 'positive', cover: { photo: true } },
+  { title: 'Записки українського самашедшого', author: 'Ліна Костенко', note: 'Всі на руках', tone: 'warning', cover: { tone: 'navy' } },
+];
+const SHELVES = [
+  { id: 'new', title: 'Нові', books: [
+    { title: 'Лісова пісня', author: 'Леся Українка', tone: 'navy' },
+    { title: 'Тіні забутих предків', photo: true },
+    { title: 'Хіба ревуть воли, як ясла повні?', author: 'Панас Мирний', tone: 'sky' },
+    { title: 'Місто', author: 'Панас Мирний', tone: 'red' },
+  ] },
+  { id: 'kids', title: 'Дитячі', books: [
+    { title: 'Кайдашева сім’я', author: 'Іван Нечуй-Левицький', tone: 'pink' },
+    { title: 'Маленький принц', photo: true },
+    { title: 'Тигролови', photo: true },
+    { title: 'Місто', author: 'Панас Мирний', tone: 'yellow' },
+  ] },
+  { id: 'school', title: 'Шкільна програма', books: [
+    { title: 'Пригоди Тома Сойєра', photo: true },
+    { title: 'Конотопська відьма', author: 'Григорій Квітка-Основ’яненко', tone: 'yellow' },
+    { title: 'Сто тисяч', author: 'Іван Карпенко-Карий', tone: 'graphite' },
+    { title: 'Тигролови', photo: true },
+  ] },
+];
+const CHIPS_1 = ['Історичні', 'Пригоди', 'Шкільна програма', 'Дитячі', 'Вивезли сміття'];
+const CHIPS_2 = ['Пригоди', 'Шкільна програма', 'Дитячі', 'Вивезли сміття'];
+
+// Cover inks are brand surfaces, the same in both themes: they point at colour tokens, never at hex.
+const COVER_TONES = {
+  navy: { bg: 'var(--vibrant-vibrant-dark-blue)', title: 'var(--neutral-neutral-white-70)', author: 'var(--neutral-neutral-white-40)', spine: 'var(--neutral-neutral-white-5)' },
+  // blue-10 is an alpha token, so on its own it would turn navy in dark. A printed cover keeps its colour: the tint is composed over white.
+  sky: { bg: 'color-mix(in srgb, var(--vibrant-vibrant-blue) 10%, var(--neutral-neutral-white))', title: 'var(--vibrant-vibrant-blue)', author: 'color-mix(in srgb, var(--vibrant-vibrant-blue) 40%, transparent)', spine: 'color-mix(in srgb, var(--vibrant-vibrant-blue) 10%, transparent)' },
+  red: { bg: 'var(--vibrant-vibrant-red)', title: 'var(--content-content-primary-invert)', author: 'var(--neutral-neutral-white-70)', spine: 'var(--neutral-neutral-white-20)' },
+  pink: { bg: 'var(--vibrant-vibrant-pink)', title: 'var(--vibrant-vibrant-dark-blue)', author: 'color-mix(in srgb, var(--vibrant-vibrant-dark-blue) 40%, transparent)', spine: 'color-mix(in srgb, var(--vibrant-vibrant-dark-blue) 10%, transparent)' },
+  yellow: { bg: 'var(--vibrant-vibrant-yellow)', title: 'var(--vibrant-vibrant-dark-blue)', author: 'color-mix(in srgb, var(--vibrant-vibrant-dark-blue) 40%, transparent)', spine: 'color-mix(in srgb, var(--vibrant-vibrant-dark-blue) 10%, transparent)' },
+  graphite: { bg: 'var(--neutral-neutral-gray100)', title: 'var(--content-content-primary-invert)', author: 'var(--neutral-neutral-white-40)', spine: 'var(--neutral-neutral-white-5)' },
+};
+
+/* custom: BookCover — Figma 4067:5208 (typographic cover for a book without a photo: tone, spine strips, mark, title, author) */
+function BookCover({ title, author, tone, small }) {
+  const t = COVER_TONES[tone];
+  return (
+    <div className={'cover' + (small ? ' cover-sm' : '')} style={{ '--cover-bg': t.bg, '--cover-title': t.title, '--cover-author': t.author, '--cover-spine': t.spine }}>
+      <span className="cover-mark"><Icon name="Ic2Kd" size={16} /></span>
+      <div className="cover-text">
+        <p className="caption1-emphasized cover-title">{title}</p>
+        <p className="caption2 cover-author">{author}</p>
+      </div>
+    </div>
+  );
+}
+
+/* custom: CoverPhoto — Figma 4067:5212 (a photographed cover). The photo is not available here, so a neutral block stands in. */
+function CoverPhoto({ title, small }) {
+  return <div className={'cover cover-photo' + (small ? ' cover-sm' : '')} role="img" aria-label={'Обкладинка: ' + title} />;
+}
+
+function Cover({ book, small }) {
+  return book.photo ? <CoverPhoto title={book.title} small={small} /> : <BookCover title={book.title} author={book.author} tone={book.tone} small={small} />;
+}
+
+/* custom: PillSearch — Figma 4067:5161 (48px pill field on a list page; the system Search is made for the blue Home header) */
+function PillSearch({ value, onChange, placeholder }) {
+  return (
+    <label className="pill-search">
+      <Icon name="Ic2Search" size={24} />
+      <input className="callout pill-input" type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder} />
+    </label>
+  );
+}
+
+/* custom: TopCard — Figma 4067:5180 (card with title, author, availability and a small cover) */
+function TopCard({ item }) {
+  return (
+    <article className="top-card">
+      <div className="top-text">
+        <div>
+          <h3 className="headline">{item.title}</h3>
+          <p className="footnote secondary">{item.author}</p>
+        </div>
+        <div className="top-status"><span className={'dot ' + 'tone-' + item.tone} aria-hidden="true" /><span className="footnote">{item.note}</span></div>
+      </div>
+      <Cover book={item.cover.photo ? { title: item.title, photo: true } : { title: item.title, author: item.author, tone: item.cover.tone }} small />
+    </article>
+  );
+}
+
+function LibraryScreen() {
+  const [tab, setTab] = useState(0);
+  const [query, setQuery] = useState('');
+  const top = TOP_10.filter((b) => includes(b.title + ' ' + b.author, query));
+  const shelves = SHELVES.map((s) => ({ ...s, books: s.books.filter((b) => includes(b.title + ' ' + (b.author || ''), query)) })).filter((s) => s.books.length > 0);
+  const nothing = top.length === 0 && shelves.length === 0;
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarEnhanced
+          type="tabs" title="Читацький квиток" tabs={['Бібліотека', 'Мій квиток']} selectedTab={tab} onTabChange={setTab}
+          onBack={noop}
+          trailingAction={{ icon: 'Ic2Info', label: 'Про читацький квиток', onClick: noop }}
+        />
+      </div>
+      <div className="scroll">
+        <div className="library-body">
+          <div className="block">
+            <PillSearch value={query} onChange={setQuery} placeholder="Книги, автори, бібліотеки" />
+            <div className="hscroll chips">
+              <div className="chip-line">{CHIPS_1.map((label, i) => <Button key={'a' + i} className="tap" style={TAP} variant="secondary" size="small" label={label} onClick={noop} />)}</div>
+              <div className="chip-line">{CHIPS_2.map((label, i) => <Button key={'b' + i} className="tap" style={TAP} variant="secondary" size="small" label={label} onClick={noop} />)}</div>
+            </div>
+          </div>
+          {nothing && <p className="subheadline secondary empty">Нічого не знайдено. Перевірте назву книги або автора.</p>}
+          {top.length > 0 && (
+            <section className="block">
+              <h2 className="title3-emphasized heading">Топ-10 місяця</h2>
+              <div className="hscroll">{top.map((item) => <TopCard key={item.title} item={item} />)}</div>
+            </section>
+          )}
+          {shelves.map((shelf) => (
+            <section className="block" key={shelf.id}>
+              <div className="shelf-head">
+                <h2 className="title3-emphasized heading">{shelf.title}</h2>
+                <Button className="tap" style={TAP} variant="ghost" size="small" iconPosition="right" icon={<Icon name="Ic2Chevron" />} label="Всі" onClick={noop} />
+              </div>
+              <div className="hscroll shelf">
+                {shelf.books.map((book, i) => (
+                  <div className="book" key={shelf.id + i}>
+                    <Cover book={book} />
+                    <p className="footnote-emphasized book-title">{book.title}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Shared by the map screens ---------- */
+
+/* Placeholder: the map is raster imagery that is not available here, so a neutral block stands in. */
+function MapPlaceholder() {
+  return <div className="map-ph" role="img" aria-label="Мапа"><span className="footnote">Мапа</span></div>;
+}
+
+/* The system draws the status bar only inside its navbars. A map screen has no bar, so an empty transparent NavbarRegular supplies it, cropped to 54px. */
+function StatusOverMap({ inverted }) {
+  return (
+    <div className="status-zone" aria-hidden="true">
+      <NavbarRegular transparent leadingIcon={false} inverted={inverted} />
+    </div>
+  );
+}
+
+/* custom: GlassButton — Figma 4067:6533 and 4067:7367 (Liquid Glass round or pill button over a sheet or a map; icon, label or both) */
+function GlassButton({ icon, label, small, warning, ariaLabel, onClick }) {
+  const cls = 'glass' + (small ? ' glass-small tap' : '') + (label && !small ? ' glass-pill' : '') + (warning ? ' glass-warning' : '');
+  return (
+    <button type="button" className={cls} aria-label={ariaLabel} onClick={onClick}>
+      {icon && <Icon className="glass-icon" name={icon} size={small ? 16 : 24} />}
+      {label && <span className={(small ? 'footnote-emphasized' : 'headline') + ' glass-label'}>{label}</span>}
+    </button>
+  );
+}
+
+/* ---------- 3. Radiation info ---------- */
+
+// Sample data: addresses and readings are the ones drawn in Figma. The 134 reading is drawn yellow although the legend calls up to 260 normal; kept as drawn.
+const STATIONS = [
+  { address: 'вул. Архітектора Вербицького, 26', value: '100', tone: 'positive', word: 'у межах норми' },
+  { address: 'шосе Харківське, 7/1', value: '88', tone: 'positive', word: 'у межах норми' },
+  { address: 'вул. Турівська, 28', value: '134', tone: 'caution', word: 'перевищує норму' },
+  { address: 'вул. Щусєва, 20', value: '3600', tone: 'negative', word: 'небезпечний рівень' },
+  { address: 'просп. Берестейський, 97', value: '24', tone: 'positive', word: 'у межах норми' },
+];
+const LEVELS = [
+  { tone: 'positive', range: 'до 260 нЗв/год', title: 'Радіаційний фон у межах норми', text: 'Радіаційний фон є звичним для організму та не завдає шкоди здоров’ю.' },
+  { tone: 'caution', range: 'від 260 до 1200 нЗв/год', title: 'Радіаційний фон перевищує норму', text: 'Радіаційний фон перевищує норму та шкідливий для здоров’я.' },
+  { tone: 'negative', range: 'від 1200 нЗв/год', title: 'Небезпечний радіаційний фон', text: 'Радіаційний фон набагато перевищує норму та становить небезпеку.' },
+];
+
+/* custom: StationRow — Figma 4067:6538 (address with a coloured reading pill; the level is also spoken, not only coloured) */
+function StationRow({ station }) {
+  return (
+    <div className="station">
+      <Icon name="Ic2Address" size={24} />
+      <span className="footnote-emphasized station-name">{station.address}</span>
+      <span className={'value-pill headline tone-' + station.tone}>{station.value}<span className="sr-only"> нЗв/год, {station.word}</span></span>
+    </div>
+  );
+}
+
+/* custom: LevelInfo — Figma 4067:6570 (legend entry: dot and range, a headline, a footnote) */
+function LevelInfo({ level }) {
+  return (
+    <div className="level-info">
+      <div className="level-range"><span className={'dot tone-' + level.tone} aria-hidden="true" /><span className="footnote">{level.range}</span></div>
+      <h3 className="headline">{level.title}</h3>
+      <p className="footnote secondary">{level.text}</p>
+    </div>
+  );
+}
+
+/* custom: MapSheet — Figma 4067:6531 (persistent bottom sheet over a map: no backdrop, 38px top corners, grabber, scrolls inside) */
+function MapSheet({ label, children }) {
+  return (
+    <section className="map-sheet" aria-label={label}>
+      <div className="grabber" aria-hidden="true" />
+      {children}
+    </section>
+  );
+}
+
+function RadiationScreen() {
+  return (
+    <div className="screen">
+      <MapPlaceholder />
+      <div className="map-fade" aria-hidden="true" />
+      <StatusOverMap />
+      <MapSheet label="Радіація">
+        <div className="sheet-scroll">
+          <div><GlassButton icon="Ic2Close" ariaLabel="Закрити" onClick={noop} /></div>
+          <div className="sheet-head">
+            <h2 className="title3-emphasized">Радіація в нормі</h2>
+            <p className="footnote secondary">Станом на зараз випромінювання не перевищують фонові показники. Дані по окремим станціям:</p>
+          </div>
+          <div className="divider" />
+          {STATIONS.map((s) => <StationRow key={s.address} station={s} />)}
+          <div className="divider" />
+          {LEVELS.map((l) => <LevelInfo key={l.tone} level={l} />)}
+        </div>
+      </MapSheet>
+    </div>
+  );
+}
+
+/* ---------- 4. Parking ---------- */
+
+// Sample data: positions are the ones drawn in Figma (frame coordinates).
+const PINS = [
+  { kind: 'cluster', x: 147, y: 142, label: '4', name: '4 паркінги поруч' },
+  { kind: 'price', x: 26, y: 263, label: '10 ₴', name: 'Паркінг, 10 ₴' },
+  { kind: 'selected', x: 239, y: 236, label: '25 ₴', name: 'Вибраний паркінг, 25 ₴' },
+  { kind: 'price', x: 300, y: 392, label: '25 ₴', name: 'Паркінг, 25 ₴' },
+  { kind: 'price', x: 74, y: 422, label: '35 ₴', name: 'Паркінг, 35 ₴' },
+];
+const ZONES = [
+  { x: 216, y: 285, w: 84, h: 18, selected: true },
+  { x: 279, y: 399, w: 82, h: 26 },
+  { x: 23, y: 437, w: 134, h: 10 },
+];
+
+/* custom: MapPin — Figma 4067:7379 (price pin, cluster pin with a count, selected pin with a tail) */
+function MapPin({ pin }) {
+  const inner = pin.kind === 'cluster'
+    ? <span className="pin-ring"><span className="footnote-emphasized">{pin.label}</span></span>
+    : <span className="footnote-emphasized">{pin.label}</span>;
+  return <div className={'pin pin-' + pin.kind} style={{ left: pin.x, top: pin.y }} role="img" aria-label={pin.name}>{inner}</div>;
+}
+
+/* custom: ZoneBar — Figma 4067:7385 (a parking zone laid over a street; selected = accent outline) */
+function ZoneBar({ zone }) {
+  return <div className={'zone' + (zone.selected ? ' zone-selected' : '')} style={{ left: zone.x, top: zone.y, width: zone.w, height: zone.h }} aria-hidden="true" />;
+}
+
+/* custom: KeyValueRow — Figma 4067:7410 (20px glyph, label, right-aligned value; denser than CellDataRow) */
+function KeyValueRow({ icon, label, value }) {
+  return (
+    <li>
+      {icon ? <Icon name={icon} size={20} /> : <span className="glyph-gap" aria-hidden="true" />}
+      <span className="subheadline kv-label">{label}</span>
+      <span className="subheadline kv-value">{value}</span>
+    </li>
+  );
+}
+
+/* custom: GlassCard — Figma 4067:7395 (floating Liquid Glass card over a map: grabber, header row, key-value rows, primary action) */
+function GlassCard({ label, children }) {
+  return (
+    <section className="glass-card" aria-label={label}>
+      <div className="grabber" aria-hidden="true" />
+      {children}
+    </section>
+  );
+}
+
+function ParkingScreen() {
+  return (
+    <div className="screen">
+      <MapPlaceholder />
+      <div className="map-fade map-fade-short" aria-hidden="true" />
+      <StatusOverMap />
+      {ZONES.map((z, i) => <ZoneBar key={i} zone={z} />)}
+      {PINS.map((p, i) => <MapPin key={i} pin={p} />)}
+      <div className="map-toolbar">
+        <GlassButton icon="Ic2ArrowLeft" ariaLabel="Назад" onClick={noop} />
+        <h1 className="headline map-title">Паркування</h1>
+        <GlassButton icon="Ic2AlertFilled" label="70 ₴" warning ariaLabel="До сплати 70 ₴" onClick={noop} />
+      </div>
+      <div className="map-bottom">
+        <GlassButton icon="Ic2Search" label="Пошук паркінгу" small onClick={noop} />
+        <GlassCard label="Вибраний паркінг">
+          <div className="card-head">
+            {/* Placeholder: the parking mark (Figma 4067:7400) is an illustration asset that is not available here. */}
+            <span className="mark-ph" role="img" aria-label="Паркінг" />
+            <div className="card-head-text">
+              <span className="callout-emphasized">А1234</span>
+              <span className="footnote secondary">вул. Златоустівська, 11</span>
+            </div>
+            <Button className="tap" style={TAP} variant="bezeled" size="small" iconPosition="only" icon={<Icon name="Ic2Route" />} aria-label="Прокласти маршрут" onClick={noop} />
+          </div>
+          <div className="divider" />
+          <ul className="kv">
+            {/* Two glyphs of the row are missing from the icon set (a red target for free places, a padlock): empty 20px slots. */}
+            <KeyValueRow label="Вільні місця на паркінгу" value="8 з 42" />
+            <KeyValueRow icon="Ic2Park" label="Стандартні" value="32" />
+            <KeyValueRow icon="Ic2Disabled" label="Для людей з інвалідністю" value="6" />
+            <KeyValueRow label="Приватні бронювання" value="4" />
+          </ul>
+          <Button variant="primary" label="Вибрати паркінг" fullWidth onClick={noop} />
+        </GlassCard>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- 5. Search / results ---------- */
+
+const OVERLAY_CHIPS = [
+  { id: 'all', label: 'Усе 24' },
+  { id: 'useful', label: 'Корисне 3' },
+  { id: 'services', label: 'Сервіси 2' },
+  { id: 'faq', label: 'Часті питання' },
+];
+const FAQ = [
+  'Що таке проїзний і як ним користуватися?',
+  'Як придбати проїзний у застосунку?',
+  'Чим відрізняється проїзний від звичайних поїздок на карті?',
+  'Чи можу я повернути кошти за проїзний?',
+];
+
+/* The Home screen behind the overlay, built from the system's own Home parts. It is blurred and hidden from assistive tech; the feed text is sample copy, unreadable under the blur. */
+function HomeBehind() {
+  return (
+    <div className="home-behind" aria-hidden="true" inert="">
+      <NavbarMain type="home" scrolled={false} date="23 жовтня" greeting="Доброго дня!" temperature="23°" weatherIcon="Ic2Sun" aqi={47} />
+      <div className="home-row">
+        <QuickAccessItem type="all" />
+        <QuickAccessItem type="qr-active" status="(5 шт.)" />
+        <QuickAccessItem label="Евакуація" icon="Ic2Evacuation" />
+        <QuickAccessItem label="Погодинне паркування" icon="Ic2HourlyPark" />
+      </div>
+      <div className="home-feed">
+        <FeedDate label="Сьогодні" />
+        <FeedCell icon="Ic2Events" title="Відключення гарячої води" description="У Шевченківському районі строком на 14 днів" chevron />
+        <FeedCell icon="Ic2Tk" title="Е-квиток" description="Поповнення квитка на 8 поїздок" chevron />
+        <FeedDate label="10 жовтня" />
+        <FeedCell icon="Ic2Tk" title="Е-квиток" description="Поповнення квитка на 8 поїздок" chevron />
+      </div>
+    </div>
+  );
+}
+
+/* custom: OverlayChip — Figma 4067:8268 (filter chip on the dark overlay; selected = white, others = translucent) */
+function OverlayChip({ label, on, onClick }) {
+  return <button type="button" className={'ov-chip tap' + (on ? ' is-on' : '')} aria-pressed={on} onClick={onClick}><span className="caption1-emphasized">{label}</span></button>;
+}
+
+/* custom: OverlayRow — Figma 4067:8274, 4067:8279 and 4067:8291 (row on the dark overlay: bare icon or 48px tile, label, optional chevron) */
+function OverlayRow({ icon, tile, label, chevron }) {
+  const glyph = icon && <Icon name={icon} size={24} />;
+  return (
+    <button type="button" className="ov-row" onClick={noop}>
+      {glyph && (tile ? <span className="ov-tile">{glyph}</span> : glyph)}
+      <span className="subheadline-emphasized ov-label">{label}</span>
+      {chevron && <Icon className="ov-chevron" name="Ic2Chevron" size={20} />}
+    </button>
+  );
+}
+
+function SearchScreen() {
+  const [query, setQuery] = useState('Проїзний');
+  const [chip, setChip] = useState('all');
+  const shows = (id) => chip === 'all' || chip === id;
+  return (
+    <div className="screen">
+      <HomeBehind />
+      {/* The glass: backdrop blur plus a dark tint, both declared at the top of the page (--overlay-blur, --overlay-tint per theme). */}
+      <div className="overlay" aria-hidden="true" />
+      <StatusOverMap inverted />
+      <div className="over-content">
+        <Search value={query} onChange={setQuery} onClear={() => setQuery('')} onCancel={() => setQuery('')} />
+        <div className="ov-chips" role="group" aria-label="Розділи пошуку">
+          {OVERLAY_CHIPS.map((c) => <OverlayChip key={c.id} label={c.label} on={chip === c.id} onClick={() => setChip(c.id)} />)}
+        </div>
+        <div className="scroll">
+          {shows('useful') && (
+            <section className="ov-section">
+              <h2 className="footnote ov-caption">Корисне</h2>
+              <OverlayRow icon="Ic2Sparkles" label="Придбати проїзний" />
+              <OverlayRow icon="Ic2Sparkles" label="Придбати цифрову карту" />
+              <OverlayRow icon="Ic2ExternalLink" label="Мапа продажу проїзних" />
+            </section>
+          )}
+          {shows('services') && (
+            <section className="ov-section ov-services">
+              <h2 className="footnote ov-caption">Сервіси</h2>
+              <OverlayRow icon="Ic2Tk" tile label="Транспортна карта" chevron />
+              <OverlayRow icon="Ic2Qr" tile label="QR-квитки" chevron />
+            </section>
+          )}
+          {shows('faq') && (
+            <section className="ov-section">
+              <h2 className="footnote ov-caption">Часті питання</h2>
+              {FAQ.map((q) => <OverlayRow key={q} label={q} chevron />)}
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Page ---------- */
+
+const FRAMES = [
+  { key: 'power', id: '4067:4633', name: '2.0 - adress / inner', height: 1175, Screen: PowerScreen,
+    note: 'NavbarRegular two-icons · SegmentedControl (7 days) · Cell with switch · custom TimeSlot, LightGlyph, ActionRow, StatusCard.',
+    warn: 'The 21px home-indicator zone is kept empty. Badge text is white on green, as drawn: 2.1:1.' },
+  { key: 'library', id: '4067:5157', name: 'library', height: 1447, Screen: LibraryScreen,
+    note: 'NavbarEnhanced tabs · Button small (chips, «Всі») · custom PillSearch, TopCard, BookCover; photo covers are placeholders. Shelves scroll sideways.',
+    warn: 'Search filters the shelves. The «Мій квиток» tab has no Figma frame: it only moves the selection.' },
+  { key: 'radiation', id: '4067:6515', name: 'radiation-info', height: 812, Screen: RadiationScreen,
+    note: 'Custom MapSheet, GlassButton, StationRow, LevelInfo on a map placeholder. Scroll the sheet for the last legend entry.',
+    warn: 'Pill ink is white as drawn: 1.6:1 on yellow, 2.1:1 on green. The map pins sit under the sheet in Figma and are not drawn.' },
+  { key: 'parking', id: '4067:7361', name: 'parking', height: 812, Screen: ParkingScreen,
+    note: 'Custom MapPin, ZoneBar, GlassButton, GlassCard, KeyValueRow · Button primary and bezeled small. The map is a placeholder.',
+    warn: 'Two glyphs the icon set lacks are left as empty slots; the parking mark is a placeholder.' },
+  { key: 'search', id: '4067:8235', name: 'search / results', height: 812, Screen: SearchScreen,
+    note: 'Search · custom glass overlay (backdrop-filter + --overlay-tint), OverlayChip, OverlayRow. Home behind it is NavbarMain, QuickAccessItem, FeedCell.',
+    warn: 'Chips filter the sections. Home is blurred, so its copy is not read.' },
+];
+const COLUMNS = [['power', 'search'], ['library', 'rules'], ['radiation', 'parking']];
+
+function Demo({ frame, theme }) {
+  const { Screen } = frame;
+  return (
+    <figure className="demo">
+      <figcaption>
+        <span className="footnote-emphasized">{frame.name} <span className="muted">· {frame.id}</span></span>
+        <span className="footnote">{frame.note}</span>
+        <span className="footnote muted">{frame.warn}</span>
+      </figcaption>
+      <div className="phone" data-theme={theme} style={{ height: frame.height }}><Screen /></div>
+    </figure>
+  );
+}
+
+function Rules() {
+  return (
+    <aside className="rules" aria-labelledby="rules-title">
+      <h2 id="rules-title" className="title3-emphasized">Free shape, fixed ground</h2>
+      <p className="subheadline-emphasized">Stays system</p>
+      <ul className="footnote">
+        <li>Colour roles, <code>space-*</code>, <code>radius-*</code>, type classes: no hex, no px type.</li>
+        <li>Light and dark from the first frame; tap targets of 44px or more.</li>
+        <li>Ukrainian copy per copywriting.md; status told in words or icon, not by colour alone.</li>
+        <li>ic2 icons only; an empty slot where a glyph is missing.</li>
+      </ul>
+      <p className="subheadline-emphasized">Is free</p>
+      <ul className="footnote">
+        <li>Layout, density and scroll direction: shelves, grids, full-bleed maps.</li>
+        <li>Shape: sheet radii, pills, pins, glass, translucent scrims.</li>
+        <li>Where colour sits: covers, pills, charts, overlays.</li>
+        <li>Imagery: maps, covers and photos come from the mini-app.</li>
+      </ul>
+      <p className="subheadline-emphasized">For a new mini-app</p>
+      <ul className="footnote">
+        <li>Use a public component when one fits; when a prop is missing, write a small named function instead of overriding internals.</li>
+        <li>A one-off value gets one local variable with a comment, never a literal in a rule.</li>
+        <li>Reserve 54px for the status bar; there is no tab bar yet.</li>
+      </ul>
+    </aside>
+  );
+}
+
+function Page() {
+  const [themeIndex, setThemeIndex] = useState(0);
+  const theme = ['light', 'dark'][themeIndex];
+  const byKey = Object.fromEntries(FRAMES.map((f) => [f.key, f]));
+  return (
+    <main className="page">
+      <header className="intro">
+        <h1 className="title1-emphasized">Custom designs</h1>
+        <p className="callout">Mini-apps inside Kyiv Digital: where screens leave the standard layouts.</p>
+        <p className="subheadline muted">Five shipping screens that no standard layout covers. Each is rebuilt from tokens and type classes, with a public component wherever one fits; the rest are small named functions marked <code>custom</code>. Flip the theme: every frame works in both.</p>
+        <div className="switch-row">
+          <span className="footnote-emphasized">Theme</span>
+          <div className="seg"><SegmentedControl options={['Світла', 'Темна']} value={themeIndex} onChange={setThemeIndex} /></div>
+        </div>
+      </header>
+      <div className="board">
+        {COLUMNS.map((col, i) => (
+          <div className="board-col" key={i}>
+            {col.map((key) => (key === 'rules' ? <Rules key={key} /> : <Demo key={key} frame={byKey[key]} theme={theme} />))}
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

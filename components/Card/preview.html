@@ -1,0 +1,59 @@
+<!-- @dsCard group="Layout" height=1230 width=760 -->
+<style>body{margin:0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;flex-wrap:wrap;align-items:flex-start}.col{box-sizing:border-box;width:375px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--background-bg-background);color:var(--content-content-primary)}.lbl{margin:12px 0 0;font:590 11px/13px var(--font-mono);letter-spacing:0;color:var(--content-content-secondary)}.lbl:first-child{margin-top:0}.sections{display:flex;flex-direction:column;gap:4px}.head{display:flex;align-items:center;gap:8px}.dot{flex:none;width:16px;height:16px;border-radius:var(--radius-pill);background:var(--background-bg-accent)}.grow{flex:1 1 0;min-width:0}.muted{color:var(--content-content-secondary)}.disc{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--radius-pill);background:var(--background-bg-subtle);border:1px solid var(--border-border-regular);box-sizing:border-box}.txt{display:flex;flex-direction:column;gap:4px}.txt>*{margin:0}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Card, Cell, TextField, Icon } = window.KyivDigitalDesignSystem_728336;
+const noop = () => {};
+function Column({ theme }) {
+  const [notify, setNotify] = React.useState(true);
+  const [taps, setTaps] = React.useState(0);
+  return h("div", { className: "col", "data-theme": theme },
+    h("p", { className: "lbl" }, 'caption · padding="list"'),
+    h(Card, { caption: "Налаштування", padding: "list" },
+      h(Cell, { label: "Сповіщення", icon: h(Icon, { name: "Ic2Notification" }), accessory: "switch", checked: notify, onCheckedChange: setNotify }),
+      h(Cell, { label: "Безпека", icon: h(Icon, { name: "Ic2Security" }), accessory: "chevron", onClick: noop }),
+      h(Cell, { label: "Мапи", icon: h(Icon, { name: "Ic2Maps" }), accessory: "chevron", onClick: noop })),
+    h("p", { className: "lbl" }, "gap={4} · one card per thing"),
+    h(Card, { gap: 4 },
+      h("span", { className: "disc", "aria-hidden": "true" }, h(Icon, { name: "Ic2Car", size: 24 })),
+      h("div", { className: "txt" },
+        h("p", { className: "footnote muted" }, "Ford Fusion"),
+        h("p", { className: "headline" }, "КА 1345 ОР"),
+        h("p", { className: "subheadline" }, "ОСЦВП дійсний до 20 червня"))),
+    h("p", { className: "lbl" }, "gap={4} · fields"),
+    h(Card, { gap: 4 },
+      h(TextField, { label: "Прізвище", defaultValue: "Коваленко" }),
+      h(TextField, { label: "Імʼя", placeholder: "Введіть імʼя" })),
+    h("p", { className: "lbl" }, 'padding="large" · stacked, 4px apart'),
+    h("div", { className: "sections" },
+      h(Card, { padding: "large", gap: 3 },
+        h("div", { className: "head" }, h("span", { className: "dot", "aria-hidden": "true" }), h("span", { className: "footnote" }, "В роботі")),
+        h("span", { className: "title3-emphasized" }, "Ремонт ліфта")),
+      h(Card, { padding: "large", gap: 2 },
+        h("span", { className: "title3-emphasized" }, "Деталі"),
+        h("span", { className: "subheadline" }, "Виконавець: Святошинська РДА"))),
+    h("p", { className: "lbl" }, "onClick · the whole card is one button"),
+    h(Card, { gap: 3, onClick: () => setTaps(taps + 1) },
+      h("span", { className: "head" },
+        h("span", { className: "footnote grow" }, taps ? "Ви відкрили рішення" : "Прийнято, 77 голосів"),
+        h(Icon, { name: "Ic2Chevron", size: 24 })),
+      h("span", { className: "callout-emphasized" }, "Про продовження програми «Захисник Києва» на 2026 рік")),
+    h("p", { className: "lbl" }, "elevated={false}"),
+    h(Card, { padding: "list", elevated: false },
+      h(Cell, { label: "Розповісти друзям", icon: h(Icon, { name: "Ic2ShareIos" }), accessory: "chevron", onClick: noop })));
+}
+function App() {
+  const root = document.documentElement;
+  const read = () => root.getAttribute("data-theme") || "light";
+  const [theme, setTheme] = React.useState(read);
+  React.useEffect(() => {
+    const mo = new MutationObserver(() => setTheme(read()));
+    mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => mo.disconnect();
+  }, []);
+  // The page's theme on the left, the other theme on the right.
+  return h("div", { className: "row" }, h(Column, { theme }), h(Column, { theme: theme === "dark" ? "light" : "dark" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

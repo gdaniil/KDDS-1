@@ -1,0 +1,32 @@
+<!-- @dsCard group="Status" height=280 width=760 -->
+<style>body{margin:0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;flex-wrap:wrap;align-items:flex-start}.col{box-sizing:border-box;width:375px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--background-bg-background);color:var(--content-content-primary)}.lbl{margin:12px 0 0;font:590 11px/13px var(--font-mono);letter-spacing:0;color:var(--content-content-secondary)}.lbl:first-child{margin-top:0}.wrap{display:flex;flex-wrap:wrap;gap:16px;align-items:center}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Tag, Card } = window.KyivDigitalDesignSystem_728336;
+function Column({ theme }) {
+  return h("div", { className: "col", "data-theme": theme },
+    h("p", { className: "lbl" }, 'type="regular" · icon'),
+    h("div", { className: "wrap" }, h(Tag, { icon: "Ic2Time", label: "23 жовтня" }), h(Tag, { icon: "Ic2Address", label: "Шевченківський" })),
+    h("p", { className: "lbl" }, 'type="status" · tone'),
+    h("div", { className: "wrap" },
+      h(Tag, { type: "status", label: "В роботі" }),
+      h(Tag, { type: "status", tone: "positive", label: "Виконано" }),
+      h(Tag, { type: "status", tone: "warning", label: "Чекає на вас" }),
+      h(Tag, { type: "status", tone: "negative", label: "Відхилено" }),
+      h(Tag, { type: "status", tone: "neutral", label: "Закрито" })),
+    h("p", { className: "lbl" }, "status header of a detail page"),
+    h(Card, { padding: "large", gap: 3 },
+      h(Tag, { type: "status", label: "В роботі" }),
+      h("span", { className: "title3-emphasized" }, "Ремонт ліфта"),
+      h(Tag, { icon: "Ic2Time", label: "Створено 23 жовтня" })));
+}
+function App() {
+  const root = document.documentElement;
+  const read = () => root.getAttribute("data-theme") || "light";
+  const [theme, setTheme] = React.useState(read);
+  React.useEffect(() => { const mo = new MutationObserver(() => setTheme(read())); mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] }); return () => mo.disconnect(); }, []);
+  return h("div", { className: "row" }, h(Column, { theme }), h(Column, { theme: theme === "dark" ? "light" : "dark" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

@@ -1,0 +1,48 @@
+/* Colours, the theme switch and every other value that tokens.json declares now come from tokens.css; what stays here is what it does not declare. */
+/* Generated from Figma Variables. First mode = :root default.
+   FLOAT tokens are unitless — multiply by 1px in calc() where a length is needed. */
+
+:root {
+  --accents-indigo: rgb(97,85,245); /* @kind color */
+  --bg-context: "Bright";
+  --component-fill: rgb(245,245,245); /* @kind color */
+  --component-stroke: var(--accents-indigo); /* @kind color */
+  --fills-tertiary: rgba(118,118,128,0.12); /* @kind color */
+  --labels-primary: rgb(0,0,0); /* @kind color */
+  --liquid-glass-depth-regular: 16; /* @kind other */
+  --liquid-glass-dispersion: 0; /* @kind other */
+  --liquid-glass-frost-regular: 7; /* @kind other */
+  --liquid-glass-light-angle: -45; /* @kind other */
+  --liquid-glass-opacity: 60; /* @kind other */
+  --liquid-glass-refraction: 100; /* @kind other */
+  --liquid-glass-splay-regular: 6; /* @kind other */
+  --miscellaneous-segmented-control-selected-fill: rgb(255,255,255); /* @kind color */
+  --mode: "Light"; /* @kind other */
+  --subcomponent-fill: rgb(170,170,170); /* @kind color */
+  --subcomponent-stroke: rgba(0,0,0,0.4); /* @kind color */
+}
+
+:root[data-theme="dark"], .dark {
+  --accents-indigo: rgb(109,124,255); /* @kind color */
+  --accents-indigo: rgb(167,170,255); /* @kind color */
+  --fills-tertiary: rgba(118,118,128,0.24); /* @kind color */
+  --fills-tertiary: rgba(118,118,128,0.32); /* @kind color */
+  --labels-primary: rgb(255,255,255); /* @kind color */
+  --labels-primary: rgb(255,255,255); /* @kind color */
+  --miscellaneous-segmented-control-selected-fill: rgba(255,255,255,0.27); /* @kind color */
+  --miscellaneous-segmented-control-selected-fill: rgba(255,255,255,0.27); /* @kind color */
+  --mode: "Dark"; /* @kind other */
+  --mode: "IC - Dark"; /* @kind other */
+}
+
+:root[data-theme="light"], .light {
+  --accents-indigo: rgb(86,74,222); /* @kind color */
+  --fills-tertiary: rgba(118,118,128,0.2); /* @kind color */
+  --labels-primary: rgb(0,0,0); /* @kind color */
+  --miscellaneous-segmented-control-selected-fill: rgb(255,255,255); /* @kind color */
+  --mode: "IC - Light"; /* @kind other */
+}
+
+:root[data-mode="dim"] {
+  --bg-context: "Dim";
+}

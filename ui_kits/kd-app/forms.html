@@ -1,0 +1,420 @@
+<!-- @dsCard group="KD App (iOS)" page height=1148 width=1620 subtitle="Entering and editing data as shipped" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms and edit screens</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  :root {
+    --phone-w: 375px;
+    --phone-h: 812px;
+    /* from Figma, not a system token: the iOS home-indicator zone kept clear under the bottom action (4067:5560) */
+    --home-indicator: 34px;
+    /* from Figma, not a system token: height of one photo thumbnail (4067:5554) */
+    --photo-h: 138px;
+  }
+
+  /* Page chrome around the phones (English). Everything inside .phone is components plus the helpers below, all on tokens. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 4 + var(--space-5) * 3 + var(--space-5) * 2); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page p { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-2); }
+  .theme-switch { width: calc(var(--space-6) * 7); }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; min-height: calc(var(--space-6) * 3); }
+  .status { color: var(--content-content-secondary); min-height: calc(var(--space-5) + var(--space-1)); }
+  @media (max-width: 480px) { .page { padding: var(--space-4) 0; } .intro, .theme-switch, .demo figcaption, .status { margin-left: var(--space-4); margin-right: var(--space-4); } }
+
+  /* The phone: a plain 375 x 812 frame. data-theme on it switches every token inside. No device chrome: the navbar draws the status bar. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); height: var(--phone-h); overflow: hidden; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .screen { display: flex; flex-direction: column; height: 100%; }
+  .top { flex: none; position: relative; }
+  .scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .col { padding: var(--space-5) var(--space-4); }
+  .mt-1 { margin-top: var(--space-1); } .mt-2 { margin-top: var(--space-2); } .mt-3 { margin-top: var(--space-3); } .mt-5 { margin-top: var(--space-5); }
+  .secondary { color: var(--content-content-secondary); }
+  .negative { color: var(--content-content-negative); }
+  .center { text-align: center; }
+  .stack { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start; }
+  .bleed { margin: 0 calc(var(--space-4) * -1); }
+  /* Button size small is 32px tall and its hit area is just as tall. className="tap" widens the tap area to 56px without moving it.
+     The Button's inline `all: unset` drops a class's `position: relative`, so the Button also gets style={TAP}. */
+  .tap { position: relative; }
+  .tap::after { content: ""; position: absolute; top: calc(var(--space-3) * -1); right: calc(var(--space-3) * -1); bottom: calc(var(--space-3) * -1); left: calc(var(--space-3) * -1); }
+
+  /* Fields and grouped rows sit in the system Card (FieldCard below). .card is the same surface by hand, kept only for ServiceLinkRow. */
+  .card { background: var(--background-bg-surface); border-radius: var(--radius-control); box-shadow: var(--shadow-elevation); }
+
+  /* custom: StepProgress — Figma 4067:5549 (flat 4px accent bar on the navbar's bottom edge, width = progress) */
+  .step-progress { position: absolute; left: 0; bottom: 1px; height: var(--space-1); background: var(--background-bg-accent); pointer-events: none; }
+
+  .select:focus-visible, .link-row:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+
+  /* custom: TextArea — Figma 4067:5552 (multi-line twin of TextField: same label, outline, radius, padding) */
+  .field { display: flex; flex-direction: column; gap: var(--space-1); align-items: stretch; }
+  .field-label { display: block; }
+  .textarea { box-sizing: border-box; display: block; width: 100%; resize: none; overflow: hidden; margin: 0; border: 0; outline: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-control); background: var(--background-bg-surface); color: var(--content-content-primary); caret-color: var(--content-content-accent); box-shadow: inset 0 0 0 1px var(--border-border-regular); }
+  .textarea::placeholder { color: var(--content-content-secondary); opacity: 1; }
+  .textarea:focus { box-shadow: inset 0 0 0 1px var(--border-border-accent); }
+  .textarea.is-error { box-shadow: inset 0 0 0 1px var(--border-border-negative); }
+
+  /* custom: SelectField — Figma 4067:7680 (a field that opens a picker: TextField look, chevron, a button) */
+  .select { appearance: none; margin: 0; border: 0; cursor: pointer; text-align: left; box-sizing: border-box; width: 100%; height: 48px; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-control); background: var(--background-bg-surface); color: var(--content-content-primary); box-shadow: inset 0 0 0 1px var(--border-border-regular); }
+  .select.is-error { box-shadow: inset 0 0 0 1px var(--border-border-negative); }
+  .select-value { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* custom: PhotoTile — Figma 4067:5554 (thumbnail with a remove button; the photo itself is a placeholder block) */
+  .photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+  .photo { position: relative; height: var(--photo-h); border-radius: var(--radius-control); background: var(--background-bg-subtle); box-shadow: inset 0 0 0 1px var(--border-border-regular); color: var(--content-content-secondary); display: flex; align-items: center; justify-content: center; }
+  .photo-remove { position: absolute; top: var(--space-1); right: var(--space-1); }
+
+  /* custom: ServiceLinkRow — Figma 4067:6709 (partner logo, two-line label, chevron, in one card) */
+  .link-row { appearance: none; margin: 0; border: 0; cursor: pointer; text-align: left; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); color: var(--content-content-primary); font-family: inherit; }
+  .logo-slot { flex: none; width: var(--space-6); height: var(--space-6); border-radius: var(--radius-sm); background: var(--background-bg-subtle); box-shadow: inset 0 0 0 1px var(--border-border-regular); }
+  .link-title { flex: 1 1 auto; min-width: 0; text-align: left; }
+  .link-row svg { flex: none; }
+
+  /* custom: ActionBar — Figma 4067:5560 and 4067:7988 (bottom action, optionally a back icon button before it) */
+  .actions { flex: none; display: flex; gap: var(--space-2); align-items: flex-start; padding: 0 var(--space-4) calc(var(--space-4) + var(--home-indicator)); }
+  .actions-back { flex: none; }
+  .actions-main { flex: 1 1 auto; min-width: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {
+  Button, TextField, Cell, CellSelection, ListCaption, NavbarRegular, SegmentedControl, Modal, Icon,
+} = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+const { Card } = window.KyivDigitalDesignSystem_728336; // the system surface block
+const TAP = { position: 'relative' };
+// The only error line the Figma frames draw; the apostrophe is U+02BC exactly as in Figma 4067:6694.
+const REQUIRED = 'Це обовʼязкове поле.';
+const NEXT_STEP = 'Valid: the app would go to the next step here.';
+const NOT_VALID = 'Not valid: the error is shown under the field and the person stays on the screen.';
+
+/* custom: FieldCard — Figma 4067:5551, 4067:6705, 4067:7677, 4067:7985 (rows: 4067:6702, 4067:7979).
+   A surface card with the elevation shadow that holds one group of fields (`fields` 16 apart, `stack` 24 apart, `single` for one field with room for its error line)
+   or grouped Cell / CellSelection rows (`rows`, 4px inner padding). */
+const FIELD_CARD = {
+  fields: { gap: 4 },
+  stack: { gap: 5 },
+  single: { style: { padding: 'var(--space-4) var(--space-4) var(--space-5)' } },
+  rows: { padding: 'list' },
+};
+function FieldCard({ variant = 'fields', children, ...rest }) {
+  const v = FIELD_CARD[variant];
+  return <Card padding={v.padding} gap={v.gap} style={v.style} {...rest}>{children}</Card>;
+}
+
+/* custom: StepProgress — Figma 4067:5549. NavbarRegular showProgress draws a fixed 26px bar, so the real width is drawn here. */
+function StepProgress({ value }) {
+  return (
+    <div className="step-progress" role="progressbar" aria-label="Прогрес заповнення" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value * 100)}
+      style={{ width: (value * 100) + '%' }} />
+  );
+}
+
+/* custom: TextArea — Figma 4067:5552. Grows with its text; error line like TextField. */
+function TextArea({ label, value, onChange, error, message }) {
+  const id = React.useId();
+  const ref = React.useRef(null);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }, [value]);
+  return (
+    <div className="field">
+      <label htmlFor={id} className="footnote secondary field-label">{label}</label>
+      <textarea
+        id={id} ref={ref} rows={3} className={'subheadline textarea' + (error ? ' is-error' : '')} value={value}
+        aria-invalid={error || undefined} onChange={(e) => onChange(e.target.value)}
+      />
+      {error && <span className="footnote negative" role="alert">{message}</span>}
+    </div>
+  );
+}
+
+/* custom: SelectField — Figma 4067:7680. Looks like TextField with a chevron; tapping it opens a picker sheet. */
+function SelectField({ label, value, error, message, onClick }) {
+  const id = React.useId();
+  return (
+    <div className="field">
+      <span id={id + 'l'} className="footnote secondary field-label">{label}</span>
+      <button type="button" className={'select' + (error ? ' is-error' : '')} aria-haspopup="dialog" aria-invalid={error || undefined}
+        aria-labelledby={id + 'l ' + id + 'v'} onClick={onClick}>
+        <span id={id + 'v'} className="subheadline select-value">{value}</span>
+        <Icon name="Ic2Chevron" size={24} style={{ flex: 'none' }} />
+      </button>
+      {error && <span className="footnote negative" role="alert">{message}</span>}
+    </div>
+  );
+}
+
+/* custom: PhotoTile — Figma 4067:5554. The photo is a raster asset we cannot ship here: a neutral token-coloured block stands in. */
+function PhotoTile({ n, onRemove }) {
+  return (
+    <div className="photo">
+      <span role="img" aria-label={'Зображення ' + n} style={{ display: 'flex' }}><Icon name="Ic2Image" size={24} /></span>
+      <div className="photo-remove">
+        <Button className="tap" style={TAP} variant="elevated" size="small" iconPosition="only" icon={<Icon name="Ic2Close" />} aria-label={'Видалити зображення ' + n} onClick={onRemove} />
+      </div>
+    </div>
+  );
+}
+
+/* custom: ServiceLinkRow — Figma 4067:6709. The Дія mark is a vector asset we do not have: a neutral placeholder stands in. */
+function ServiceLinkRow({ title, onClick }) {
+  return (
+    <button type="button" className="card link-row" onClick={onClick}>
+      <span className="logo-slot" role="img" aria-label="Логотип Дії" />
+      <span className="footnote-emphasized link-title">{title}</span>
+      <Icon name="Ic2Chevron" size={24} />
+    </button>
+  );
+}
+
+/* custom: ActionBar — Figma 4067:5560 and 4067:7988. One primary action pinned to the bottom, a back icon button before it when there is a previous step. */
+function ActionBar({ label, onPrimary, onBack }) {
+  return (
+    <div className="actions">
+      {onBack && (
+        <div className="actions-back">
+          <Button variant="secondary" iconPosition="only" icon={<Icon name="Ic2ArrowLeft" />} aria-label="Назад" onClick={onBack} />
+        </div>
+      )}
+      <div className="actions-main"><Button variant="primary" label={label} fullWidth onClick={onPrimary} /></div>
+    </div>
+  );
+}
+
+/* A bottom sheet with one-of choices (CellSelection rows); picks and closes at once. `inline` only because four phones share this page. */
+function PickerSheet({ title, options, value, onPick, onClose }) {
+  return (
+    <Modal inline showClose onClose={onClose} title={title}>
+      <div className="bleed" role="listbox" aria-label={title}>
+        {options.map((o) => <CellSelection key={o} label={o} selected={value === o} onClick={() => onPick(o)} />)}
+      </div>
+    </Modal>
+  );
+}
+
+/* 1. 2.2 - content [filled]: a multi-line text field and photo thumbnails in one card. The check runs on «Продовжити». */
+const REPORT_TEXT = 'Переповнений контейнер на вул. Хрещатик, 22.\n\nКонтейнери не вивозили третій день, сміття лежить навколо майданчика між третім і четвертим під\'їздом.';
+const MAX_PHOTOS = 3;
+
+function ReportScreen({ report }) {
+  const [text, setText] = React.useState(REPORT_TEXT);
+  const [photos, setPhotos] = React.useState([1, 2]);
+  const [nextId, setNextId] = React.useState(3);
+  const [shown, setShown] = React.useState(false);
+  const error = shown && !text.trim();
+  const addPhoto = () => { setPhotos((p) => [...p, nextId]); setNextId(nextId + 1); };
+  const submit = () => { setShown(true); report(text.trim() ? NEXT_STEP : NOT_VALID); };
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular title="Нове звернення" onClose={noop} />
+        <StepProgress value={0.5} />
+      </div>
+      <div className="scroll">
+        <div className="col">
+          <FieldCard variant="stack">
+            <TextArea label="Опис проблеми" value={text} onChange={setText} error={error} message={REQUIRED} />
+            {photos.length > 0 && (
+              <div className="photos">
+                {photos.map((id, i) => <PhotoTile key={id} n={i + 1} onRemove={() => setPhotos((p) => p.filter((x) => x !== id))} />)}
+              </div>
+            )}
+            <Button className="tap" style={TAP} variant="secondary" size="small" icon={<Icon name="Ic2Image" />} label="Додати зображення" fullWidth disabled={photos.length >= MAX_PHOTOS} onClick={addPhoto} />
+          </FieldCard>
+        </div>
+      </div>
+      <ActionBar label="Продовжити" onPrimary={submit} onBack={noop} />
+    </div>
+  );
+}
+
+/* 2. 2.1 - techpass [empty] / error: heading, a switch card, a field card shown in its error state, and a Дія shortcut below. */
+const TECH_RE = /^[A-ZА-ЯІЇЄҐ]{3}[0-9]{6}$/;
+const techText = (v) => v.replace(/\s/g, '').toUpperCase();
+
+function TechpassScreen({ report }) {
+  const [ukrainian, setUkrainian] = React.useState(true);
+  const [number, setNumber] = React.useState('');
+  const [shown, setShown] = React.useState(true);
+  let message = '';
+  if (!number.trim()) message = REQUIRED;
+  else if (ukrainian && !TECH_RE.test(techText(number))) message = 'Невірний номер. Перевірте формат: AAA000000';
+  const error = shown && !!message;
+  const submit = () => { setShown(true); report(message ? NOT_VALID : NEXT_STEP); };
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular variant="two-icons" title="Повернення авто" leadingIcon={false} trailingAction={{ icon: 'Ic2Close', label: 'Закрити', onClick: noop }} />
+        <StepProgress value={0.11} />
+      </div>
+      <div className="scroll">
+        <div className="col">
+          <div className="stack">
+            <h2 className="title2-emphasized" style={{ margin: 0 }}>Додайте техпаспорт</h2>
+            <p className="footnote" style={{ margin: 0 }}>Будь ласка, введіть номер та зробіть фото техпаспорту або завантажте з Дії.</p>
+            <Button className="tap" style={TAP} variant="bezeled" size="small" icon={<Icon name="Ic2Info" />} label="Техпаспорт в автомобілі" onClick={noop} />
+          </div>
+          <FieldCard variant="rows" className="mt-5">
+            <Cell label="Український техпаспорт" accessory="switch" checked={ukrainian} onCheckedChange={setUkrainian} />
+          </FieldCard>
+          <FieldCard variant="single" className="mt-2">
+            <TextField label="Серія та номер документа" placeholder="AAA000000" value={number} onChange={setNumber}
+              state={error ? 'error' : 'default'} message={message} autoComplete="off" />
+          </FieldCard>
+          <div className="mt-5">
+            <ListCaption label="Є цей документ в Дії?" />
+            <ServiceLinkRow title="Автоматично заповнити дані про техпаспорт з Дії" onClick={noop} />
+          </div>
+        </div>
+      </div>
+      <ActionBar label="Продовжити" onPrimary={submit} />
+    </div>
+  );
+}
+
+/* 3. 2.0 - search / manual: the registry did not know the plate, so the same data is typed by hand; three fields open pickers. */
+const SEARCHED_PLATE = 'KA1345OP';
+const TYPES = ['Легковий', 'Вантажний', 'Автобус', 'Мотоцикл'];
+const VOLUMES = ['до 1600', '1601–2000', '2001–3000', 'понад 3000'];
+const CITIES = ['м. Київ', 'м. Львів', 'м. Одеса', 'м. Харків', 'м. Дніпро'];
+const PICKERS = {
+  type: { label: 'Тип авто', options: TYPES },
+  volume: { label: 'Об\'єм двигуна, см3', options: VOLUMES },
+  city: { label: 'Місто реєстрації', options: CITIES },
+};
+
+function ManualScreen({ report }) {
+  const [plate, setPlate] = React.useState(SEARCHED_PLATE);
+  const [pick, setPick] = React.useState({ type: '', volume: '', city: 'м. Київ' });
+  const [sheet, setSheet] = React.useState(null);
+  const [shown, setShown] = React.useState(false);
+  const missing = { plate: !plate.trim(), type: !pick.type, volume: !pick.volume, city: !pick.city };
+  const valid = !Object.values(missing).some(Boolean);
+  const submit = () => { setShown(true); report(valid ? NEXT_STEP : NOT_VALID); };
+  const choose = (key, value) => { setPick((p) => ({ ...p, [key]: value })); setSheet(null); };
+  const select = (key, placeholder) => (
+    <SelectField label={PICKERS[key].label} value={pick[key] || placeholder} error={shown && missing[key]} message={REQUIRED} onClick={() => setSheet(key)} />
+  );
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular title="Замовлення поліса" onBack={noop} />
+        <StepProgress value={0.5} />
+      </div>
+      <div className="scroll">
+        <div className="col">
+          <p className="subheadline secondary center" style={{ margin: 0 }}>
+            Не знайшли в реєстрі авто <strong className="subheadline-emphasized">{SEARCHED_PLATE}</strong>. Додайте дані власноруч.
+          </p>
+          <FieldCard variant="fields" className="mt-5">
+            <TextField label="Номер авто" value={plate} onChange={(v) => setPlate(v.toUpperCase())} maxLength={8} autoComplete="off"
+              state={shown && missing.plate ? 'error' : 'default'} message={REQUIRED} />
+            {select('type', 'Вибрати тип авто')}
+            {select('volume', 'Вибрати об’єм двигуна')}
+            {select('city', '')}
+          </FieldCard>
+        </div>
+      </div>
+      <ActionBar label="Підтвердити" onPrimary={submit} />
+      {sheet && <PickerSheet title={PICKERS[sheet].label} options={PICKERS[sheet].options} value={pick[sheet]} onPick={(o) => choose(sheet, o)} onClose={() => setSheet(null)} />}
+    </div>
+  );
+}
+
+/* 4. 2 - doc: choose which document, then type its number. The number field is drawn focused, so it starts in the focus look. */
+const DOCS = ['ID-картка', 'Паспорт', 'Свідоцтво про народження', 'Закордонне свідоцтво'];
+
+function DocScreen({ report }) {
+  const [doc, setDoc] = React.useState(1);
+  const [number, setNumber] = React.useState('');
+  const [drawnFocused, setDrawnFocused] = React.useState(true);
+  const [shown, setShown] = React.useState(false);
+  const error = shown && !number.trim();
+  const submit = () => { setShown(true); report(number.trim() ? NEXT_STEP : NOT_VALID); };
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular variant="two-icons" title="Документ учня" leadingIcon={false} trailingAction={{ icon: 'Ic2Close', label: 'Закрити', onClick: noop }} />
+        <StepProgress value={0.27} />
+      </div>
+      <div className="scroll">
+        <div className="col">
+          <ListCaption label="Виберіть документ, за яким учня приймали до навчального закладу." />
+          <FieldCard variant="rows" className="mt-1" role="listbox" aria-label="Документ">
+            {DOCS.map((label, i) => <CellSelection key={label} label={label} selected={doc === i} onClick={() => setDoc(i)} />)}
+          </FieldCard>
+          <FieldCard variant="single" className="mt-3">
+            <TextField label="Серія та номер документа" placeholder="AA0000" value={number} onChange={setNumber} autoComplete="off"
+              state={error ? 'error' : drawnFocused ? 'focus' : 'default'} message={REQUIRED} onFocus={() => setDrawnFocused(false)} />
+          </FieldCard>
+        </div>
+      </div>
+      <ActionBar label="Підтвердити документ" onPrimary={submit} onBack={noop} />
+    </div>
+  );
+}
+
+const FRAMES = [
+  { id: '4067:5548', name: '2.2 - content [filled]', tags: 'NavbarRegular · TextArea* · PhotoTile* (Button elevated) · Button small · ActionBar* · StepProgress*', Screen: ReportScreen },
+  { id: '4067:6694', name: '2.1 - techpass [empty] / error', tags: 'NavbarRegular two-icons · Button bezeled · Cell switch · TextField error · ListCaption · ServiceLinkRow* · ActionBar*', Screen: TechpassScreen },
+  { id: '4067:7670', name: '2.0 - search / manual', tags: 'NavbarRegular · TextField · SelectField* · Modal + CellSelection · ActionBar*', Screen: ManualScreen },
+  { id: '4067:7974', name: '2 - doc', tags: 'NavbarRegular two-icons · ListCaption · CellSelection · TextField focus · ActionBar* with back', Screen: DocScreen },
+];
+
+function Frame({ theme, frame, index }) {
+  const [status, setStatus] = React.useState('Try it: clear a field, then press the bottom button.');
+  const { id, name, tags, Screen } = frame;
+  return (
+    <figure className="demo">
+      <figcaption>
+        <span className="footnote-emphasized">{index + 1}. {name} · Figma {id}</span>
+        <span className="footnote">{tags} (* custom, built from tokens)</span>
+      </figcaption>
+      <div className="phone" data-theme={theme}><Screen report={setStatus} /></div>
+      <p className="footnote status" aria-live="polite">{status}</p>
+    </figure>
+  );
+}
+
+function Page() {
+  const [mode, setMode] = React.useState(0);
+  const theme = mode === 0 ? 'light' : 'dark';
+  return (
+    <main className="page">
+      <header className="intro">
+        <h1 className="title1-emphasized">Forms and edit screens</h1>
+        <p className="callout">Entering and editing data as shipped: four steps of multi-step flows at 375 × 812. Fields sit in surface cards, the primary action is pinned to the bottom, and a lookup (the Дія shortcut, a registry search that failed) is offered next to typing by hand. Type in the fields, remove and add photos, flip the switch, open the pickers, and press the bottom button to see the check.</p>
+        <div className="theme-switch" role="group" aria-label="Theme">
+          <SegmentedControl options={['Світла', 'Темна']} value={mode} onChange={setMode} />
+        </div>
+      </header>
+      <section className="phones" aria-label="Screens">
+        {FRAMES.map((frame, i) => <Frame key={frame.id} theme={theme} frame={frame} index={i} />)}
+      </section>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

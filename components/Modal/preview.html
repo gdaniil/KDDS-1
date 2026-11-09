@@ -1,0 +1,60 @@
+<!-- @dsCard group="Overlays" height=760 width=1220 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:24px;align-items:flex-start}.cap{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-secondary);margin:0 0 8px}.phone{position:relative;width:375px;height:700px;overflow:hidden;border-radius:var(--radius-card);background:var(--background-bg-background);transform:translateZ(0)}.page{display:flex;flex-direction:column;gap:4px;padding:16px}.grp{background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden;margin-bottom:12px}.disc{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--background-bg-accent-subtle);color:var(--content-content-accent)}.list{margin:0 -16px}.open{padding:0 16px}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Modal, Button, Icon, NavbarRegular, Cell, CellDataRow, CellSelection, ListCaption } = window.KyivDigitalDesignSystem_728336;
+function Screen(props) {
+  return h(React.Fragment, null,
+    h(NavbarRegular, { title: "Штрафи" }),
+    h("div", { className: "page" },
+      h(ListCaption, { label: "Неоплачені" }),
+      h("div", { className: "grp" },
+        h(Cell, { label: "Паркування, 23 жовтня", caption: "1 250,00 ₴", icon: h(Icon, { name: "Ic2Fine" }), accessory: "chevron" }),
+        h(Cell, { label: "Перевищення швидкості", caption: "510,00 ₴", icon: h(Icon, { name: "Ic2Fine" }), accessory: "chevron" })),
+      h(ListCaption, { label: "Оплачені" }),
+      h("div", { className: "grp" },
+        h(Cell, { label: "Паркування, 2 вересня", caption: "340,00 ₴", icon: h(Icon, { name: "Ic2Fine" }), accessory: "chevron" }))),
+    props.children);
+}
+function LiveExample() {
+  const [open, setOpen] = React.useState(false);
+  const [status, setStatus] = React.useState("all");
+  const [shown, setShown] = React.useState("all");
+  const pick = (v) => () => setStatus(v);
+  const label = { all: "Усі петиції", review: "На розгляді", supported: "Підтримані" };
+  return h(React.Fragment, null,
+    h(NavbarRegular, { title: "Петиції" }),
+    h("div", { className: "page" },
+      h(ListCaption, { label: "Показано: " + label[shown].toLowerCase() }),
+      h("div", { className: "grp" },
+        h(Cell, { label: "Облаштувати велодоріжку на Хрещатику", icon: h(Icon, { name: "Ic2Petition" }), accessory: "chevron" }),
+        h(Cell, { label: "Нові укриття на Оболоні", icon: h(Icon, { name: "Ic2Petition" }), accessory: "chevron" })),
+      h(Button, { variant: "secondary", label: "Фільтри", icon: h(Icon, { name: "Ic2Adjust" }), onClick: () => setOpen(true) })),
+    h(Modal, { open, onClose: () => setOpen(false), showClose: true, title: "Фільтри",
+      actions: h(Button, { label: "Показати петиції", onClick: () => { setShown(status); setOpen(false); } }) },
+      h("div", { className: "list", role: "listbox", "aria-label": "Статус петиції" },
+        h(CellSelection, { label: label.all, selected: status === "all", onClick: pick("all") }),
+        h(CellSelection, { label: label.review, selected: status === "review", onClick: pick("review") }),
+        h(CellSelection, { label: label.supported, selected: status === "supported", onClick: pick("supported") }))));
+}
+function App() {
+  return h("div", { className: "row" },
+    h("div", null, h("p", { className: "cap" }, "Без кнопки закриття · inline"),
+      h("div", { className: "phone" }, h(Screen, null,
+        h(Modal, { inline: true, title: "Оплатити штраф", description: "Паркування в неналежному місці, 23 жовтня, вул. Хрещатик, 22.",
+          illustration: h("div", { className: "disc" }, h(Icon, { name: "Ic2Fine", size: 32 })),
+          actions: [h(Button, { key: "p", label: "Оплатити" }), h(Button, { key: "s", variant: "secondary", label: "Скасувати" })] },
+          h("div", { className: "list" },
+            h(CellDataRow, { label: "Постанова", value: "ГАА 1234567" }),
+            h(CellDataRow, { label: "До сплати", value: "1 250,00 ₴" })))))),
+    h("div", null, h("p", { className: "cap" }, "З кнопкою закриття · alert · inline"),
+      h("div", { className: "phone" }, h(Screen, null,
+        h(Modal, { inline: true, alert: true, showClose: true, dismissible: false, title: "Підписати петицію?",
+          description: "«Облаштувати велодоріжку на Хрещатику». Підпис не можна буде відкликати.",
+          actions: [h(Button, { key: "p", label: "Підписати петицію" }), h(Button, { key: "s", variant: "secondary", label: "Скасувати" })] })))),
+    h("div", null, h("p", { className: "cap" }, "Живий приклад: натисніть «Фільтри»"),
+      h("div", { className: "phone" }, h(LiveExample))));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

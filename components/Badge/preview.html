@@ -1,0 +1,33 @@
+<!-- @dsCard group="Status" height=300 width=760 -->
+<style>body{margin:0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;flex-wrap:wrap;align-items:flex-start}.col{box-sizing:border-box;width:375px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--background-bg-background);color:var(--content-content-primary)}.lbl{margin:12px 0 0;font:590 11px/13px var(--font-mono);letter-spacing:0;color:var(--content-content-secondary)}.lbl:first-child{margin-top:0}.wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.card{display:flex;flex-direction:column;gap:8px;align-items:flex-start}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Badge, Card } = window.KyivDigitalDesignSystem_728336;
+function Column({ theme }) {
+  return h("div", { className: "col", "data-theme": theme },
+    h("p", { className: "lbl" }, "tone · icon"),
+    h("div", { className: "wrap" },
+      h(Badge, { tone: "accent", icon: "Ic2Time", label: "На розгляді" }),
+      h(Badge, { tone: "neutral", icon: "Ic2Time", label: "Чернетка" }),
+      h(Badge, { tone: "positive", icon: "Ic2Check", label: "Підтверджено" }),
+      h(Badge, { tone: "warning", icon: "Ic2Alert", label: "Закінчується" }),
+      h(Badge, { tone: "negative", icon: "Ic2Close", label: "Відхилено" }),
+      h(Badge, { tone: "dark", icon: "Ic2Light", label: "до 15:00 немає світла" })),
+    h("p", { className: "lbl" }, "no icon"),
+    h("div", { className: "wrap" }, h(Badge, { label: "бета" }), h(Badge, { tone: "neutral", label: "Архів" })),
+    h("p", { className: "lbl" }, "in a card footer"),
+    h(Card, { gap: 2 },
+      h("span", { className: "footnote", style: { color: "var(--content-content-secondary)" } }, "ДТЕК Київські електромережі"),
+      h("span", { className: "headline" }, "вул. Хрещатик, 22"),
+      h(Badge, { tone: "dark", icon: "Ic2Light", label: "до 15:00 немає світла" })));
+}
+function App() {
+  const root = document.documentElement;
+  const read = () => root.getAttribute("data-theme") || "light";
+  const [theme, setTheme] = React.useState(read);
+  React.useEffect(() => { const mo = new MutationObserver(() => setTheme(read())); mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] }); return () => mo.disconnect(); }, []);
+  return h("div", { className: "row" }, h(Column, { theme }), h(Column, { theme: theme === "dark" ? "light" : "dark" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

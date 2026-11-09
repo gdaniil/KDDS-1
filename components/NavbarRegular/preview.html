@@ -1,0 +1,24 @@
+<!-- @dsCard group="Navigation" height=1730 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.col{display:flex;flex-direction:column;gap:12px;width:343px}.lbl{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);width:72px;flex-shrink:0}.grp{width:343px;background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden}.stack{display:flex;flex-direction:column;gap:16px;align-items:flex-start}.theme{display:flex;flex-direction:column;gap:16px;padding:16px 0;background:var(--background-bg-background);color:var(--content-content-primary)}.cap{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary)}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { NavbarRegular } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  const noop = () => {};
+  const share = { icon: "Ic2ShareIos", label: "Поділитися", onClick: noop };
+  const info = { icon: "Ic2Info", label: "Інформація", onClick: noop };
+  const bars = (theme) => h("div", { "data-theme": theme, className: "theme", style: { width: 375 } },
+    h("span", { className: "cap", style: { padding: "0 16px" } }, theme),
+    h(NavbarRegular, { title: "Штрафи", onBack: noop }),
+    h(NavbarRegular, { variant: "back-action", title: "Нова заявка", actionLabel: "Готово", onBack: noop, onAction: noop }),
+    theme === "light" && h(NavbarRegular, { variant: "back-action", title: "Довідка про склад сім’ї та реєстрацію місця проживання", actionLabel: "Готово", onBack: noop, onAction: noop }),
+    h(NavbarRegular, { title: "Петиція", onBack: noop, trailingAction: share }),
+    theme === "light" && h(NavbarRegular, { title: "Мої адреси", onBack: noop, trailingAction: info }),
+    h(NavbarRegular, { title: "Крок 2 з 3", onClose: noop, showProgress: true }),
+    h("div", { style: { background: "var(--background-bg-accent-home)", width: 375 } }, h(NavbarRegular, { title: "Укриття", inverted: true, onBack: noop, trailingAction: share })),
+    h(NavbarRegular, { transparent: true, onBack: noop, trailingAction: share }));
+  return h("div", { className: "stack", style: { width: 375, gap: 0 } }, bars("light"), bars("dark"));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

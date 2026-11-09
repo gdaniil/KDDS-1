@@ -1,0 +1,214 @@
+<!-- @dsCard group="KD App (iOS)" page height=1320 width=900 subtitle="Empty and no-result states as drawn in Figma" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Empty states</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  :root {
+    --phone-w: 375px;
+    --phone-h: 812px;
+    /* from Figma, not a system token: the iOS home-indicator zone kept clear at the bottom of a screen (4117:14147) */
+    --home-indicator: 34px;
+    /* from Figma, not a system token: the status-bar area a navbar normally draws (4117:15265) */
+    --status-h: 54px;
+    /* from Figma, not a system token: the illustration slot, 280 x 227.62 (4117:14101) */
+    --art-w: 280px;
+    --art-h: 228px;
+    /* from Figma, not a system token: width of the explanation text (4117:14145) */
+    --empty-text-w: 327px;
+    /* from Figma, not a system token: system keyboard height (4117:15269) and bottom toolbar height (4117:15268) */
+    --kbd-h: 307px;
+    --toolbar-h: 64px;
+    /* from Figma, not a system token: height of the glass search field and the round close button in the bottom toolbar */
+    --glass-h: 48px;
+    /* one empty state: the gap between the picture and its text is 48 in Figma, composed here from two space steps (32 + 16) */
+    --empty-gap: calc(var(--space-6) + var(--space-4));
+  }
+
+  /* Page chrome around the phones (English). Everything inside .phone is components plus the helpers below, all on tokens. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 2 + var(--space-5) * 3 + var(--space-5) * 2); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page p, .page h2 { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-2); }
+  .intro p { max-width: 760px; }
+  .theme-switch { width: calc(var(--space-6) * 7); }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; gap: var(--space-1); min-height: calc(var(--space-6) * 2 + var(--space-3)); }
+  .status { color: var(--content-content-secondary); min-height: calc(var(--space-5) + var(--space-1)); }
+  .notes { display: flex; flex-direction: column; gap: var(--space-2); max-width: 760px; }
+  .notes ul { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); }
+  .secondary { color: var(--content-content-secondary); }
+  .center { text-align: center; }
+  @media (max-width: 480px) { .page { padding: var(--space-4) 0; } .intro, .theme-switch, .demo figcaption, .status, .notes { margin-left: var(--space-4); margin-right: var(--space-4); } }
+
+  /* The phone: a plain 375 x 812 frame. data-theme on it switches every token inside. No device chrome: a navbar draws the status bar. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); height: var(--phone-h); overflow: hidden; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  /* Glass over the page: a translucent fill from bg-surface, one blur, a 1px rim (patterns.md, «Glass over imagery»).
+     The fill is bg-surface at about 78%, declared per theme on the frame that carries data-theme. */
+  .phone[data-theme="light"] { --glass-fill: rgba(255, 255, 255, 0.78); /* derived: bg-surface light at 78%, not a system token */ }
+  .phone[data-theme="dark"] { --glass-fill: rgba(35, 36, 47, 0.78); /* derived: bg-surface dark at 78%, not a system token */ }
+  .screen { display: flex; flex-direction: column; height: 100%; }
+  .top { flex: none; }
+
+  /* custom: EmptyState — Figma 4117:14100, 4117:15266. Centred in the free area: an optional picture, then one explanation. No card, no button. */
+  .empty-body { flex: 1 1 auto; min-height: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: var(--space-5) var(--space-4); }
+  .empty-body.above-home { padding-bottom: var(--home-indicator); }
+  .empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--empty-gap); width: 100%; }
+  .empty-state p { max-width: var(--empty-text-w); }
+  /* The illustration is not shipped with the system: a neutral token-coloured block keeps its slot. The rim keeps it visible in dark, where bg-subtle equals the page. */
+  .empty-art { flex: none; box-sizing: border-box; width: var(--art-w); height: var(--art-h); border-radius: var(--radius-control); background: var(--background-bg-subtle); box-shadow: inset 0 0 0 1px var(--border-border-regular); color: var(--content-content-secondary); display: flex; align-items: center; justify-content: center; }
+
+  /* custom: FilterDot — Figma 4117:14150. A 6px accent dot on the FAB's icon: filters are applied. The state is also spoken in the FAB's aria-label. */
+  .slot-fab-center { position: absolute; left: 50%; bottom: calc(var(--space-6) + var(--space-2)); transform: translateX(-50%); } /* Figma 4117:14148 draws 42; the system floating-filter pattern is 40 */
+  .fab-wrap { position: relative; display: inline-flex; }
+  .filter-dot { position: absolute; top: 10px; left: 40px; /* the FAB is 48 tall with a 20px side padding and a 24px icon: this puts the dot on the icon's top-right corner */ width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--background-bg-accent); pointer-events: none; }
+
+  /* native: status bar — a navbar draws it; this screen has none, so the area is only kept clear */
+  .status-area { flex: none; height: var(--status-h); }
+
+  /* native: bottom search toolbar (iOS 26 Liquid Glass): a pill field with the query and a round close button. A look-alike, not a component to ship. */
+  .toolbar { flex: none; box-sizing: border-box; height: var(--toolbar-h); display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); }
+  .glass { background: var(--glass-fill); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: inset 0 0 0 1px var(--border-border-regular), var(--shadow-elevation); }
+  .glass-field { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--glass-h); display: flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3); border-radius: var(--radius-pill); }
+  .glass-field:focus-within { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+  .glass-input { all: unset; flex: 1 1 auto; min-width: 0; color: var(--content-content-primary); caret-color: var(--content-content-accent); }
+  .glass-close { all: unset; flex: none; box-sizing: border-box; width: var(--glass-h); height: var(--glass-h); border-radius: var(--radius-pill); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--content-content-primary); }
+  .glass-close:active { opacity: 0.7; }
+  .glass-close:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+
+  /* native: system keyboard — a placeholder at its real height; the system draws the keys */
+  .kbd { flex: none; box-sizing: border-box; height: var(--kbd-h); border-radius: var(--radius-card) var(--radius-card) 0 0; background: var(--background-bg-info); box-shadow: inset 0 1px 0 var(--border-border-regular); display: flex; align-items: center; justify-content: center; color: var(--content-content-secondary); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { NavbarRegular, FAB, Icon, SegmentedControl } = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+
+/* custom: EmptyState — Figma 4117:14100 and 4117:15266. One explanation, centred; `art` adds the picture above it.
+   The picture is a placeholder (illustrations are not shipped); its slot keeps the Figma size. */
+function EmptyState({ text, art, artLabel, aboveHome }) {
+  return (
+    <div className={'empty-body' + (aboveHome ? ' above-home' : '')}>
+      <div className="empty-state">
+        {art && (
+          <div className="empty-art" role="img" aria-label={artLabel}><Icon name="Ic2Image" size={24} /></div>
+        )}
+        <p className="subheadline secondary center">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+/* 1. category [empty-filter]: a list screen whose filters match nothing. The explanation sits on the page; the filter FAB stays, with a dot while filters are applied. */
+function CategoryEmptyFilter({ report }) {
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular title="Книжки" onBack={noop} />
+      </div>
+      <EmptyState
+        art
+        aboveHome
+        artLabel="Ілюстрація: відкрита коробка"
+        text="На жаль, за обраними фільтрами книг не знайшли. Проте в бібліотеці є інші книжки, які вас можуть зацікавити."
+      />
+      <div className="slot-fab-center">
+        <div className="fab-wrap">
+          <FAB icon={<Icon name="Ic2Adjust" />} label="Фільтрувати" aria-label="Фільтрувати, є активні фільтри" onClick={() => report('Opens the filters. The sheet is not drawn in Figma.')} />
+          {/* custom: FilterDot — Figma 4117:14150 */}
+          <span className="filter-dot" aria-hidden="true" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 2. search / no result: the query matched nothing. There is no navbar: the status area is kept clear, the explanation is centred above the bottom search toolbar,
+   and the system keyboard is up. The toolbar and the keyboard are native: look-alikes only. */
+function SearchNoResult({ report }) {
+  const [query, setQuery] = React.useState('Тігро');
+  return (
+    <div className="screen">
+      {/* native: status bar */}
+      <div className="status-area" aria-hidden="true" />
+      <EmptyState text="На жаль, нічого не знайшлося. Спробуйте змінити запит і перевірте, чи немає помилок." />
+      {/* native: search toolbar */}
+      <div className="toolbar">
+        <label className="glass glass-field">
+          <Icon name="Ic2Search" size={24} style={{ flex: 'none' }} />
+          <input className="body glass-input" type="search" enterKeyHint="search" autoComplete="off" aria-label="Пошук" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </label>
+        <button type="button" className="glass glass-close" aria-label="Закрити пошук" onClick={() => { setQuery(''); report('Native: the close button ends the search and drops the keyboard.'); }}>
+          <Icon name="Ic2Close" size={24} />
+        </button>
+      </div>
+      {/* native: system keyboard */}
+      <div className="kbd" role="img" aria-label="Системна клавіатура"><span className="footnote">Системна клавіатура</span></div>
+    </div>
+  );
+}
+
+const FRAMES = [
+  { id: '4117:14098', name: 'category [empty-filter]', tags: 'NavbarRegular · EmptyState* (illustration placeholder) · FAB · FilterDot*', Screen: CategoryEmptyFilter },
+  { id: '4117:15264', name: 'search / no result', tags: 'EmptyState* · native search toolbar · native keyboard', Screen: SearchNoResult },
+];
+
+function Frame({ theme, frame, index }) {
+  const [status, setStatus] = React.useState('Try it: tap the button at the bottom.');
+  const { id, name, tags, Screen } = frame;
+  return (
+    <figure className="demo">
+      <figcaption>
+        <span className="footnote-emphasized">{index + 1}. {name} · Figma {id}</span>
+        <span className="footnote">{tags} (* custom, built from tokens)</span>
+      </figcaption>
+      <div className="phone" data-theme={theme}><Screen report={setStatus} /></div>
+      <p className="footnote status" aria-live="polite">{status}</p>
+    </figure>
+  );
+}
+
+function Page() {
+  const [mode, setMode] = React.useState(0);
+  const theme = mode === 0 ? 'light' : 'dark';
+  return (
+    <main className="page">
+      <header className="intro">
+        <h1 className="title1-emphasized">Empty states</h1>
+        <p className="callout">Two empty states as drawn in Figma at 375 × 812: a list whose filters match nothing, and a search with no result. The explanation is one centred paragraph on the page, with no card and no button of its own. What the person does next is a control that is already on screen: the filter FAB, or the search field. In the first screen the illustration is a placeholder; in the second the status bar, the search toolbar and the keyboard are native look-alikes.</p>
+        <div className="theme-switch" role="group" aria-label="Theme">
+          <SegmentedControl options={['Світла', 'Темна']} value={mode} onChange={setMode} />
+        </div>
+      </header>
+      <section className="phones" aria-label="Screens">
+        {FRAMES.map((frame, i) => <Frame key={frame.id} theme={theme} frame={frame} index={i} />)}
+      </section>
+      <section className="notes" aria-label="Notes on the Figma frames">
+        <h2 className="headline">Open points in the Figma frames</h2>
+        <ul className="footnote">
+          <li>The text is <code>content-content-secondary</code> on <code>background-bg-background</code>: 4.3:1 in light, under the 4.5:1 that 15px text needs (the README flags this pair).</li>
+          <li>The first screen says other books may be of interest but offers no way to see them or to clear the filters; only the filter FAB is there.</li>
+          <li>Both texts start with «На жаль», which <code>copywriting.md</code> asks not to add mechanically.</li>
+          <li>The FAB sits 42px above the bottom edge in Figma; the floating-filter pattern in <code>patterns.md</code> says 40.</li>
+        </ul>
+      </section>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

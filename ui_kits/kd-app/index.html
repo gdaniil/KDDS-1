@@ -1,0 +1,481 @@
+<!-- @dsCard group="KD App (iOS)" page height=3910 width=1270 subtitle="Example screens in light and dark, built only from the 25 components" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Example screens</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  /* Page chrome around the phones. Everything inside .phone is components plus the few layout helpers below, all on tokens. */
+  :root { --phone-w: 375px; --phone-h: 812px; }
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 3 + var(--space-5) * 4 + var(--space-5) * 2); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page h2, .page p { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-2); }
+  .panel { box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); border-radius: var(--radius-card); background: var(--background-bg-subtle); overflow-x: auto; }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; min-height: calc(var(--space-6) + var(--space-5)); }
+  @media (max-width: 480px) {
+    .page { padding: 0; }
+    .panel { padding: var(--space-4) 0; border-radius: 0; }
+    .panel h2 { padding: 0 var(--space-4); }
+  }
+
+  /* The phone: a plain 375 x 812 frame. data-theme on it switches every token inside. No device chrome: the navbars draw the status bar. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); height: var(--phone-h); overflow: hidden; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .screen { display: flex; flex-direction: column; height: 100%; }
+  .top { flex: none; }
+  .blue { background: var(--background-bg-accent-home); }
+  .scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .col { padding: 0 var(--space-4); }
+  .cap-top { padding-top: var(--space-3); }
+  .stack { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-3); padding-bottom: var(--space-5); }
+  .group { background: var(--background-bg-surface); border-radius: var(--radius-control); overflow: hidden; }
+  .actions { position: relative; flex: none; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); }
+  .heading { margin: 0; }
+  .empty { margin: 0; padding: var(--space-4) 0; }
+  .quick { background: var(--background-bg-surface); padding: var(--space-3) 0; }
+  .quick-row { display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-1) var(--space-4); scrollbar-width: none; }
+  .quick-row::-webkit-scrollbar { display: none; }
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); padding: var(--space-1) var(--space-4) var(--space-5); }
+  .form { display: flex; flex-direction: column; gap: var(--space-4); padding-top: var(--space-4); padding-bottom: var(--space-5); }
+  .field { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start; }
+  .error-text { margin: 0; color: var(--content-content-negative); }
+  .slot-bottom { position: absolute; left: var(--space-4); right: var(--space-4); bottom: var(--space-4); pointer-events: none; }
+  .slot-above { position: absolute; left: var(--space-4); right: var(--space-4); bottom: 100%; pointer-events: none; }
+  .slot-fab { position: absolute; right: var(--space-4); bottom: var(--space-4); }
+  .pad-fab { padding-bottom: calc(var(--space-6) * 2 + var(--space-4)); }
+  /* NavbarEnhanced icon slots are 24 x 24: widen the tap area of a Button placed there to 48 x 56 without moving it. */
+  .tap { position: relative; }
+  .tap::after { content: ""; position: absolute; top: calc(var(--space-3) * -1); right: calc(var(--space-3) * -1); bottom: calc(var(--space-3) * -1); left: calc(var(--space-3) * -1); }
+  .bleed { margin: 0 calc(var(--space-4) * -1); }
+  .sheet-info { display: flex; flex-direction: column; gap: var(--space-2); }
+  .sheet-info p { margin: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {
+  Button, PayButton, FAB, TextField, Search, LicensePlate, Cell, CellSelection, CellDataRow, ListCaption,
+  NavbarMain, NavbarRegular, NavbarEnhanced, Toast, ProgressBar, Icon, QuickAccessItem,
+  ServiceGridItem, FeedCell, FeedDate, Modal,
+} = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+
+// Sample data only: names, numbers and plates are invented.
+const SERVICES = [
+  { label: 'Штрафи', icon: 'Ic2Fine' },
+  { label: 'Петиції', icon: 'Ic2Petition' },
+  { label: 'ЖКП', icon: 'Ic2Utilities' },
+  { label: 'Паркування', icon: 'Ic2Park' },
+  { label: 'Укриття', icon: 'Ic2Shelter' },
+  { label: 'Рух транспорту', icon: 'Ic2TransportSchedule', badge: true },
+  { label: 'Опитування', icon: 'Ic2Poll' },
+  { label: 'Транспортна карта', icon: 'Ic2Tk' },
+  { label: 'Евакуація', icon: 'Ic2Evacuation' },
+  { label: 'ОСББ', icon: 'Ic2Osbb' },
+  { label: 'Дороги', icon: 'Ic2Roads' },
+  { label: 'Освіта', icon: 'Ic2School' },
+];
+
+const FEED = [
+  { day: 'Сьогодні', items: [
+    { icon: 'Ic2Fine', title: 'Штраф сплачено', description: 'Постанова ЛК 1234567 · 340,00 ₴', time: '14:20' },
+    { icon: 'Ic2Petition', tint: 'accent', title: 'Нова петиція', description: 'Освітлення на вулиці Січових Стрільців', time: '11:05' },
+  ] },
+  { day: 'Вчора', items: [
+    { icon: 'Ic2AlertAirraid', tint: 'negative', title: 'Повітряна тривога', description: 'Київ · тривала 47 хв', time: '03:12' },
+    { icon: 'Ic2Utilities', title: 'Рахунок за ЖКП', description: 'Жовтень · 1 250,00 ₴', time: '09:00' },
+  ] },
+  { day: '21 жовтня', items: [
+    { icon: 'Ic2Poll', tint: 'accent', title: 'Нове опитування', description: 'Прибирання листя у дворах', time: '16:30' },
+    { icon: 'Ic2Tk', title: 'Транспортну карту поповнено', description: 'Поповнення · 100,00 ₴', time: '12:15' },
+  ] },
+];
+
+const PETITIONS = [
+  { id: 1, title: 'Облаштувати велодоріжку на Хрещатику', votes: 5120, shown: '5 120' },
+  { id: 2, title: 'Нові укриття на Оболоні', votes: 3480, shown: '3 480' },
+  { id: 3, title: 'Освітлення на вулиці Січових Стрільців', votes: 2210, shown: '2 210' },
+  { id: 4, title: 'Більше лавок у парку', votes: 1675, shown: '1 675' },
+  { id: 5, title: 'Зупинка транспорту біля станції метро', votes: 940, shown: '940' },
+];
+const PETITION_GOAL = 10000;
+const PETITION_GOAL_SHOWN = '10 000';
+
+const includes = (text, query) => text.toLowerCase().includes(query.trim().toLowerCase());
+
+// A Toast is shown for a moment: keep it in state, clear it with a timer, and place it at the bottom of the screen,
+// or just above the bottom actions (`above`) so it never covers the main button.
+function useToast(above = false) {
+  const [toast, setToast] = React.useState(null);
+  const timer = React.useRef(0);
+  const show = (label, type = 'success') => {
+    clearTimeout(timer.current);
+    setToast({ label, type });
+    timer.current = setTimeout(() => setToast(null), 2500);
+  };
+  React.useEffect(() => () => clearTimeout(timer.current), []);
+  const node = (
+    <div className={above ? 'slot-above' : 'slot-bottom'} aria-live="polite">
+      {toast && <Toast type={toast.type} label={toast.label} />}
+    </div>
+  );
+  return [node, show];
+}
+
+function copyText(text) {
+  try {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(noop);
+  } catch (e) { /* clipboard is optional: the Toast still confirms the tap */ }
+}
+
+/* 1. Home: blue header behind NavbarMain, quick access row, event feed. Tap «Пошук» for the search state. */
+function HomeScreen() {
+  const [searching, setSearching] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+  const found = SERVICES.filter((s) => includes(s.label, query));
+  const closeSearch = () => { setQuery(''); setSearching(false); };
+
+  return (
+    <div className="screen">
+      {searching ? (
+        <div className="top">
+          <NavbarMain type="home" scrolled temperature="14°" weatherIcon="Ic2Cloud" aqi={47} />
+          <div className="blue">
+            <Search autoFocus value={query} onChange={setQuery} onClear={() => setQuery('')} onCancel={closeSearch} />
+          </div>
+        </div>
+      ) : (
+        <div className="top blue">
+          <NavbarMain
+            type="home" scrolled={false} date="23 жовтня" greeting="Доброго дня!" temperature="14°" weatherIcon="Ic2Cloud" aqi={47}
+            onSearch={() => setSearching(true)} onAvatarClick={noop} onWeatherClick={noop} onAqiClick={noop} onPowerStatusClick={noop}
+          />
+        </div>
+      )}
+      {searching ? (
+        <div className="scroll">
+          <div className="col stack">
+            {found.length > 0 ? (
+              <div>
+                <ListCaption label="Сервіси" />
+                <div className="group">
+                  {found.map((s) => <Cell key={s.label} label={s.label} icon={<Icon name={s.icon} />} accessory="chevron" onClick={noop} />)}
+                </div>
+              </div>
+            ) : (
+              <p className="subheadline empty">Нічого не знайдено. Перевірте назву послуги.</p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="scroll">
+          <div className="col cap-top"><ListCaption label="Швидкий доступ" /></div>
+          <div className="quick">
+            <div className="quick-row">
+              <QuickAccessItem label="Штрафи" icon="Ic2Fine" onClick={noop} />
+              <QuickAccessItem type="parking-active" label="КА 1234 ІР" status="00:32" aria-label="Паркування КА 1234 ІР, 00:32" onClick={noop} />
+              <QuickAccessItem type="qr-active" label="QR-квитки" status="(2 шт.)" onClick={noop} />
+              <QuickAccessItem label="Петиції" icon="Ic2Petition" onClick={noop} />
+              <QuickAccessItem type="all" onClick={noop} />
+            </div>
+          </div>
+          {FEED.map((group) => (
+            <React.Fragment key={group.day}>
+              <FeedDate label={group.day} />
+              {group.items.map((item) => (
+                <FeedCell key={item.title} icon={item.icon} tint={item.tint} title={item.title} description={item.description} time={item.time} onClick={noop} />
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* 2. Services: NavbarMain services with the grid/list toggle driving ServiceGridItem tiles or a Cell list. */
+function ServicesScreen() {
+  const [view, setView] = React.useState('grid');
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarMain type="services" scrolled={false} view={view} onViewChange={setView} onHomeClick={noop} />
+      </div>
+      <div className="scroll">
+        {view === 'grid' ? (
+          <div className="tiles">
+            {SERVICES.map((s) => <ServiceGridItem key={s.label} label={s.label} icon={s.icon} badge={s.badge} onClick={noop} />)}
+          </div>
+        ) : (
+          <div className="col stack">
+            <div className="group">
+              {SERVICES.map((s) => <Cell key={s.label} label={s.label} icon={<Icon name={s.icon} />} accessory="chevron" onClick={noop} />)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* 3. Profile: NavbarMain profile and grouped Cells on background-bg-surface, each group under a ListCaption. */
+function ProfileScreen() {
+  const [notify, setNotify] = React.useState(true);
+  const [faceId, setFaceId] = React.useState(false);
+  const [lang, setLang] = React.useState(0);
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarMain type="profile" scrolled={false} userName="Олена К." phone="+380 XX XXX XX XX" onHomeClick={noop} onEdit={noop} />
+      </div>
+      <div className="scroll">
+        <div className="col stack">
+          <div>
+            <ListCaption label="Мої дані" />
+            <div className="group">
+              <Cell label="Мої авто" caption="КА 1234 ІР" icon={<Icon name="Ic2Car" />} accessory="chevron" onClick={noop} />
+              <Cell label="Банківські картки" icon={<Icon name="Ic2Card" />} accessory="chevron" onClick={noop} />
+              <Cell label="Адреси" icon={<Icon name="Ic2Address" />} accessory="chevron" onClick={noop} />
+              <Cell label="Документи" icon={<Icon name="Ic2DocUsed" />} accessory="chevron" onClick={noop} />
+            </div>
+          </div>
+          <div>
+            <ListCaption label="Налаштування" />
+            <div className="group">
+              <Cell label="Сповіщення" icon={<Icon name="Ic2Notification" />} accessory="switch" checked={notify} onCheckedChange={setNotify} />
+              <Cell label="Вхід за Face ID" icon={<Icon name="Ic2Security" />} accessory="switch" checked={faceId} onCheckedChange={setFaceId} />
+              <Cell label="Мова застосунку" icon={<Icon name="Ic2Language" />} accessory="segmented" segmentOptions={['Укр', 'En']} segmentValue={lang} onSegmentChange={setLang} />
+            </div>
+          </div>
+          <div>
+            <ListCaption label="Допомога" />
+            <div className="group">
+              <Cell label="Довідка" icon={<Icon name="Ic2Faq" />} accessory="chevron" onClick={noop} />
+              <Cell label="Про застосунок" icon={<Icon name="Ic2Info" />} accessory="chevron" onClick={noop} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 4. Fine detail: NavbarRegular, CellDataRow facts with copy and a Toast, PayButton and one primary Button at the bottom. */
+function FineScreen() {
+  const [toast, showToast] = useToast(true);
+  const copy = (what, value) => () => { copyText(value); showToast(what + ' скопійовано'); };
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular title="Штраф" /></div>
+      <div className="scroll">
+        <div className="col stack">
+          <h2 className="title3-emphasized heading">Паркування в неналежному місці</h2>
+          <div>
+            <ListCaption label="Дані постанови" />
+            <div className="group">
+              <CellDataRow label="Сума" value="1 250,00 ₴" />
+              <CellDataRow label="Статус" value="Не сплачено" />
+              <CellDataRow label="Номер постанови" value="ЛК 1234567" icon iconLabel="Копіювати номер постанови" onIconClick={copy('Номер постанови', 'ЛК 1234567')} />
+              <CellDataRow label="Дата порушення" value="23 жовтня" />
+              <CellDataRow label="Номер авто" value="АА 1234 ВВ" icon iconLabel="Копіювати номер авто" onIconClick={copy('Номер авто', 'АА 1234 ВВ')} />
+              <CellDataRow label="Місце" value="вул. Хрещатик, 22" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="actions">
+        {toast}
+        <PayButton provider="apple" fullWidth onClick={noop} />
+        <Button variant="primary" label="Оплатити банківською карткою" fullWidth onClick={noop} />
+      </div>
+    </div>
+  );
+}
+
+/* 5. Form: NavbarRegular with showProgress, TextFields, LicensePlate with its own error line, one primary Button.
+   The plate error is shown from the start (as after a failed attempt); the phone error appears only after the button is pressed. */
+const PLATE_RE = /^[A-ZА-ЩЬЮЯІЇЄҐ]{2}[0-9]{4}[A-ZА-ЩЬЮЯІЇЄҐ]{2}$/;
+const phoneOk = (v) => { const d = v.replace(/\D/g, ''); return d.length === 12 && d.startsWith('380'); };
+
+function FormScreen() {
+  const [name, setName] = React.useState('');
+  const [plate, setPlate] = React.useState('АА1234В');
+  const [phone, setPhone] = React.useState('');
+  const [shown, setShown] = React.useState({ plate: true, phone: false });
+  const [toast, showToast] = useToast(true);
+  const plateError = shown.plate && !PLATE_RE.test(plate);
+  const phoneError = shown.phone && !phoneOk(phone);
+  const submit = () => {
+    setShown({ plate: true, phone: true });
+    if (PLATE_RE.test(plate) && phoneOk(phone)) showToast('Ви додали авто');
+  };
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular title="Додати авто" showProgress /></div>
+      <div className="scroll">
+        <div className="col form">
+          <h2 className="title3-emphasized heading">Дані авто</h2>
+          <TextField label="Назва авто" placeholder="Наприклад, Сімейне авто" helperText="Необов’язково" value={name} onChange={setName} />
+          <div className="field">
+            <span className="callout">Номер авто</span>
+            <LicensePlate aria-label="Номер авто" value={plate} onChange={setPlate} />
+            {plateError && <p className="footnote error-text">Невірний номер. Перевірте формат: АА 1234 ВВ</p>}
+          </div>
+          <TextField
+            label="Номер телефону" type="tel" inputMode="tel" placeholder="+380 XX XXX XX XX" helperText="Для зв’язку"
+            state={phoneError ? 'error' : 'default'} message="Невірний номер. Перевірте формат: +380 44 123 45 67"
+            value={phone} onChange={setPhone}
+          />
+        </div>
+      </div>
+      <div className="actions">
+        {toast}
+        <Button variant="primary" label="Додати авто" fullWidth onClick={submit} />
+      </div>
+    </div>
+  );
+}
+
+/* 6. Petitions with sheets: NavbarEnhanced search, Cell list, FAB, and two Modals over the dimmed screen:
+   a filter sheet of CellSelection rows (open from the start) and a sign confirmation (tap a petition).
+   The sheets are drawn with `inline` only because twelve phones share this page: in a real app leave `inline` off,
+   so the Modal covers the screen, traps focus and closes on Escape. */
+const FILTERS = [
+  { id: 'all', label: 'Усі петиції', empty: '' },
+  { id: 'signed', label: 'Підписані мною', empty: 'Ви ще не підписали жодної петиції.' },
+  { id: 'unsigned', label: 'Ще не підписані', empty: 'Ви підписали всі петиції зі списку.' },
+];
+
+function PetitionsScreen() {
+  const [query, setQuery] = React.useState('');
+  const [sheet, setSheet] = React.useState('filter');
+  const [filter, setFilter] = React.useState('all');
+  const [draft, setDraft] = React.useState('all');
+  const [selected, setSelected] = React.useState(1);
+  const [signed, setSigned] = React.useState([]);
+  const [toast, showToast] = useToast();
+  const active = FILTERS.find((f) => f.id === filter);
+  const list = PETITIONS.filter((p) => includes(p.title, query) && (filter === 'all' || (filter === 'signed') === signed.includes(p.id)));
+  const current = PETITIONS.find((p) => p.id === selected) || PETITIONS[0];
+  const closeSheet = () => setSheet(null);
+  const openFilter = () => { setDraft(filter); setSheet('filter'); };
+  const applyFilter = () => { setFilter(draft); closeSheet(); };
+  const openSign = (id) => { setSelected(id); setSheet('sign'); };
+  const sign = () => {
+    setSigned((ids) => (ids.includes(current.id) ? ids : [...ids, current.id]));
+    closeSheet();
+    showToast('Ви підписали петицію');
+  };
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarEnhanced
+          type="search" title="Петиції" searchPlaceholder="Пошук петицій" searchValue={query} onSearchChange={setQuery}
+          trailingIcon={<Button className="tap" style={{ position: 'relative' }} variant="bezeled" size="small" iconPosition="only" icon={<Icon name="Ic2Adjust" />} aria-label="Фільтри" onClick={openFilter} />}
+        />
+      </div>
+      <div className="scroll">
+        <div className="col stack pad-fab">
+          {list.length > 0 ? (
+            <div>
+              <ListCaption label={active.label} />
+              <div className="group">
+                {list.map((p) => (
+                  <Cell
+                    key={p.id} label={p.title} caption={signed.includes(p.id) ? 'Ви підписали' : 'Підписів: ' + p.shown}
+                    icon={<Icon name="Ic2Petition" />} accessory="chevron" onClick={() => openSign(p.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="subheadline empty">{query ? 'Нічого не знайдено. Перевірте назву петиції.' : active.empty}</p>
+          )}
+        </div>
+      </div>
+      <div className="slot-fab">
+        <FAB icon={<Icon name="Ic2Plus" />} label="Нова петиція" onClick={noop} />
+      </div>
+      {toast}
+      {sheet === 'filter' && (
+        <Modal inline showClose onClose={closeSheet} title="Фільтри" actions={<Button label="Показати петиції" onClick={applyFilter} />}>
+          <div className="bleed" role="listbox" aria-label="Які петиції показати">
+            {FILTERS.map((f) => <CellSelection key={f.id} label={f.label} selected={draft === f.id} onClick={() => setDraft(f.id)} />)}
+          </div>
+        </Modal>
+      )}
+      {sheet === 'sign' && (
+        <Modal
+          inline alert onClose={closeSheet} title="Підписати петицію?" description={'«' + current.title + '»'}
+          actions={[
+            <Button key="sign" label="Підписати петицію" onClick={sign} />,
+            <Button key="cancel" variant="secondary" label="Скасувати" onClick={closeSheet} />,
+          ]}
+        >
+          <div className="sheet-info">
+            <ProgressBar value={current.votes / PETITION_GOAL} />
+            <p className="footnote">Підписів: {current.shown} з {PETITION_GOAL_SHOWN}</p>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+const SCREENS = [
+  { key: 'home', name: 'Home', tags: 'NavbarMain · Search · QuickAccessItem · FeedDate · FeedCell', Screen: HomeScreen },
+  { key: 'services', name: 'Services', tags: 'NavbarMain · ServiceGridItem · Cell', Screen: ServicesScreen },
+  { key: 'profile', name: 'Profile', tags: 'NavbarMain · ListCaption · Cell with chevron, switch and segmented', Screen: ProfileScreen },
+  { key: 'fine', name: 'Fine detail', tags: 'NavbarRegular · CellDataRow · PayButton · Button · Toast', Screen: FineScreen },
+  { key: 'form', name: 'Form', tags: 'NavbarRegular showProgress · TextField · LicensePlate · Button', Screen: FormScreen },
+  { key: 'petitions', name: 'List with sheets', tags: 'NavbarEnhanced · Cell · FAB · Modal · CellSelection · ProgressBar', Screen: PetitionsScreen },
+];
+
+function Panel({ theme, title }) {
+  return (
+    <section className="panel" aria-labelledby={'panel-' + theme}>
+      <h2 id={'panel-' + theme} className="title3-emphasized">{title}</h2>
+      <div className="phones">
+        {SCREENS.map(({ key, name, tags, Screen }, i) => (
+          <figure className="demo" key={key}>
+            <figcaption>
+              <span className="footnote-emphasized">{i + 1}. {name}</span>
+              <span className="footnote">{tags}</span>
+            </figcaption>
+            <div className="phone" data-theme={theme}><Screen /></div>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Page() {
+  return (
+    <main className="page">
+      <header className="intro">
+        <h1 className="title1-emphasized">Example screens</h1>
+        <p className="callout">Kyiv Digital screens at 375 × 812, assembled only from the 25 components of window.KyivDigitalDesignSystem_728336 and the tokens. Each screen is shown in both themes and works: toggle the switches, flip the grid and list views, copy a value, tap «Пошук» on Home, open and close the sheet.</p>
+      </header>
+      <Panel theme="light" title="Light theme" />
+      <Panel theme="dark" title="Dark theme" />
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

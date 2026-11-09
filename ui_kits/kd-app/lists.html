@@ -1,0 +1,547 @@
+<!-- @dsCard group="KD App (iOS)" page height=2062 width=1270 subtitle="List screens as shipped: addresses, cars, cards, services" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lists</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  /* One-off sizes the Figma frames draw that are not system tokens. */
+  :root {
+    --phone-w: 375px; --phone-h: 812px;
+    --disc-size: 40px;       /* from Figma, not a system token: leading icon disc, 4067:4496 */
+    --tint-disc-size: 32px;  /* from Figma, not a system token: tinted icon disc in a rich row, 4067:5734 */
+    --status-dot-size: 16px; /* from Figma, not a system token: request status dot, 4067:5445 */
+  }
+
+  /* Page chrome around the phones (English). Everything inside .phone is components plus the helpers below, all on tokens. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 3 + var(--space-5) * 4 + var(--space-5) * 2); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page p { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-2); }
+  .intro p { max-width: 760px; }
+  .switch-row { display: flex; align-items: center; gap: var(--space-3); }
+  .switch-row .seg { width: 220px; }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; gap: var(--space-1); min-height: calc(var(--space-6) * 2 + var(--space-3) + var(--space-1)); }
+  .muted { color: var(--content-content-secondary); }
+  @media (max-width: 480px) { .page { padding: var(--space-4) 0; } .intro, .switch-row { padding: 0 var(--space-4); } .demo figcaption { padding: 0 var(--space-4); } }
+
+  /* The phone: a plain 375 x 812 frame. data-theme on it switches every token inside. No device chrome: the navbars draw the status bar. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); height: var(--phone-h); overflow: hidden; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .screen { display: flex; flex-direction: column; height: 100%; }
+  .top { flex: none; }
+  .scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .body { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-4); }
+  .body.wide { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .body.pad-fab { padding-bottom: calc(var(--space-6) * 2 + var(--space-4)); }
+  .body > p, .body > h2 { margin: 0; }
+  .stack { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-1); }
+  .body > .intro-text { text-align: center; margin: 0 0 var(--space-3); color: var(--content-content-secondary); }
+  .empty { margin: 0; padding: var(--space-4) 0; text-align: center; color: var(--content-content-secondary); }
+  .slot-bottom { position: absolute; left: var(--space-4); right: var(--space-4); bottom: var(--space-4); pointer-events: none; }
+  .slot-fab-center { position: absolute; left: 50%; bottom: calc(var(--space-6) + var(--space-2)); transform: translateX(-50%); }
+  /* A small Button is 32px high: grow its hit area to 44 without moving it. !important beats the inline `all: unset` the Button carries,
+     which would otherwise un-position it and anchor the ::after to the phone. */
+  .tap-s { position: relative !important; }
+  .tap-s::after { content: ""; position: absolute; inset: calc(var(--space-3) / -2); }
+  .add-row:active, .meta-copy:active { opacity: 0.7; }
+  .add-row:focus-visible, .meta-copy:focus-visible, .promo-link:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+
+  /* One thing of the user's is the system Card (bg-surface, radius-control, shadow-elevation), 12px apart on the page.
+     .card is the same block by hand, left only on the donor promo block and PromoTile. */
+  .card { box-sizing: border-box; width: 100%; background: var(--background-bg-surface); border-radius: var(--radius-control); box-shadow: var(--shadow-elevation); }
+  .item-card { align-items: flex-start; }
+  .item-text { display: flex; flex-direction: column; gap: var(--space-1); align-self: stretch; min-width: 0; }
+  .item-text > * { margin: 0; overflow-wrap: anywhere; }
+  .item-top { display: flex; align-items: center; justify-content: space-between; align-self: stretch; }
+  .icon-disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--disc-size); height: var(--disc-size); border-radius: var(--radius-pill); background: var(--background-bg-subtle); color: var(--content-content-primary); }
+  .photo { flex: none; width: var(--disc-size); height: var(--disc-size); border-radius: var(--radius-pill); background: var(--background-bg-subtle); border: 1px solid var(--border-border-regular); box-sizing: border-box; }
+  .illustration { flex: none; width: var(--disc-size); height: var(--disc-size); border-radius: var(--radius-sm); background: var(--background-bg-subtle); border: 1px solid var(--border-border-regular); box-sizing: border-box; }
+  .badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-radius: var(--radius-pill); color: var(--content-content-primary-invert); }
+  .badge.off { background: var(--chart-chart-power-off); }
+  .badge.alert { background: var(--background-bg-warning); }
+  .badge .slot { flex: none; display: inline-flex; width: 16px; height: 16px; }
+  .meta-rows { display: flex; flex-direction: column; gap: var(--space-3); align-self: stretch; }
+  .meta-rows hr { margin: 0; border: 0; height: 1px; background: var(--border-border-regular); }
+  .meta-row { display: flex; align-items: center; gap: var(--space-2); }
+  .meta-row .label, .meta-row .value { flex: 1 1 0; min-width: 0; }
+  .meta-row .value { text-align: right; }
+  .meta-row .ok { color: var(--content-content-positive); }
+  .meta-row .warn { color: var(--content-content-warning); }
+  .meta-row svg { flex: none; }
+  .confirmed { display: flex; align-items: center; gap: var(--space-1); color: var(--content-content-secondary); }
+
+  /* Add row: the last row under a list of own things. A Cell in look, in the link colour. */
+  .add-row { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: var(--space-3); width: 100%; height: 48px; padding: var(--space-3) var(--space-4); border-radius: var(--radius-control); cursor: pointer; color: var(--content-content-link); }
+
+  /* Request card */
+  .request { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); }
+  .request > * { margin: 0; }
+  .status { display: flex; align-items: center; gap: var(--space-2); }
+  .dot { flex: none; width: var(--status-dot-size); height: var(--status-dot-size); border-radius: var(--radius-pill); }
+  .meta-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); color: var(--content-content-secondary); }
+  .meta-chip { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .meta-copy { all: unset; position: relative; display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; border-radius: var(--radius-sm); }
+  .meta-copy::after { content: ""; position: absolute; top: calc(var(--space-3) * -1 - 1px); bottom: calc(var(--space-3) * -1 - 1px); left: calc(var(--space-2) * -1); right: calc(var(--space-2) * -1); }
+
+  /* Rich rows in one card (donor frame) */
+  .promo { padding: var(--space-5) var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
+  .promo-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+  .promo-link { all: unset; box-sizing: border-box; display: flex; align-items: flex-start; gap: var(--space-3); width: 100%; cursor: pointer; border-radius: var(--radius-control); }
+  .promo-link:active { opacity: 0.7; }
+  .tint-disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--tint-disc-size); height: var(--tint-disc-size); border-radius: var(--radius-pill); }
+  .tint-disc.green { background: var(--vibrant-vibrant-green-10); color: var(--content-content-positive); }
+  .tint-disc.blue { background: var(--background-bg-accent-subtle); color: var(--content-content-accent); }
+  .promo-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .promo-text .lines { display: flex; flex-direction: column; gap: 2px; }
+  .promo-text .lines > * { margin: 0; }
+  .promo-divider { height: 1px; background: var(--border-border-regular); margin-left: calc(var(--tint-disc-size) + var(--space-3)); margin-right: calc(var(--space-4) * -1); }
+  .promo-chevron { flex: none; display: inline-flex; color: var(--content-content-primary); }
+
+  /* Promo tiles (deputies frame) */
+  .tiles { display: flex; gap: var(--space-3); align-items: stretch; }
+  .tile { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-4); }
+  .tile p { margin: 0; }
+  .tile .grow { flex: 1 1 auto; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {
+  Button, FAB, Cell, ListCaption, NavbarRegular, NavbarEnhanced, SegmentedControl, Toast, Icon,
+} = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+const { Card } = window.KyivDigitalDesignSystem_728336; // the system surface block
+
+// Sample data only: it is the copy of the Figma frames; photos are replaced by placeholders.
+const SEP = '⋅'; // the dot operator the Figma frames use between address and group; elsewhere they use «·»
+
+function useToast() {
+  const [toast, setToast] = React.useState(null);
+  const timer = React.useRef(0);
+  const show = (label, type = 'success') => {
+    clearTimeout(timer.current);
+    setToast({ label, type });
+    timer.current = setTimeout(() => setToast(null), 2500);
+  };
+  React.useEffect(() => () => clearTimeout(timer.current), []);
+  const node = (
+    <div className="slot-bottom" aria-live="polite">
+      {toast && <Toast type={toast.type} label={toast.label} />}
+    </div>
+  );
+  return [node, show];
+}
+
+function copyText(text) {
+  try {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(noop);
+  } catch (e) { /* clipboard is optional: the Toast still confirms the tap */ }
+}
+
+/* ---------- custom pieces: small, free in shape, all on tokens ---------- */
+
+/* custom: IconDisc — 40px circle on bg-subtle holding a 24px glyph — Figma 4067:4496 "ic" */
+function IconDisc({ icon }) {
+  return <span className="icon-disc" aria-hidden="true"><Icon name={icon} size={24} /></span>;
+}
+
+/* custom: ItemCard — card of one thing of the user's: top (disc or avatar + action), text stack, footer — Figma 4067:4495, 4067:4901, 4067:4982, 4067:5950 */
+function ItemCard({ top, eyebrow, title, titleClass = 'headline', description, footer }) {
+  return (
+    <Card gap={4} className="item-card">
+      {top}
+      <div className="item-text">
+        {eyebrow && <p className="footnote muted">{eyebrow}</p>}
+        <h2 className={titleClass}>{title}</h2>
+        {description && <p className="subheadline">{description}</p>}
+      </div>
+      {footer}
+    </Card>
+  );
+}
+
+/* custom: StatusBadge — pill with a 16px icon and a caption1-emphasized label on a status fill — Figma 4067:4501, 4067:4509 "badge" */
+function StatusBadge({ tone, icon, label }) {
+  return (
+    <span className={'badge ' + tone}>
+      {/* The «off» glyph (crossed bolt) is internal to the system (Ic2Light type=off), not a public icon: an empty 16 × 16 slot is left. */}
+      <span className="slot" aria-hidden="true">{icon ? <Icon name={icon} size={16} /> : null}</span>
+      <span className="caption1-emphasized">{label}</span>
+    </span>
+  );
+}
+
+/* custom: MetaRows — hairline, then icon + label + value, repeated — Figma 4067:4907, 4067:4922 "Frame 133" */
+function MetaRows({ rows }) {
+  return (
+    <div className="meta-rows">
+      {rows.map((r) => (
+        <React.Fragment key={r.label}>
+          <hr />
+          <div className="meta-row">
+            <span className={r.tone} aria-hidden="true" style={{ display: 'inline-flex' }}><Icon name={r.icon} size={20} /></span>
+            <span className="footnote-emphasized label">{r.label}</span>
+            <span className="footnote muted value">{r.value}</span>
+          </div>
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+/* custom: ConfirmedLine — 16px check and a footnote, the footer of a confirmed status — Figma 4067:4988 */
+function ConfirmedLine({ label }) {
+  return (
+    <div className="confirmed">
+      <Icon name="Ic2CheckFilled" size={16} />
+      <span className="footnote">{label}</span>
+    </div>
+  );
+}
+
+/* custom: AddRow — the «add new» row under a list of own things: Cell metrics, link colour, plus-circle — Figma 4067:4511 (cell / regular, overridden) */
+function AddRow({ label, onClick = noop }) {
+  return (
+    <Card padding="list">
+      <button type="button" className="add-row" onClick={onClick}>
+        <Icon name="Ic2PlusCircle" size={24} />
+        <span className="subheadline-emphasized">{label}</span>
+      </button>
+    </Card>
+  );
+}
+
+/* custom: MetaChip — 16px icon and a footnote; a button when it copies — Figma 4067:5449, 4067:5455 */
+function MetaChip({ icon, children, copyLabel, onCopy }) {
+  const body = (<><Icon name={icon} size={16} /><span className="footnote">{children}</span></>);
+  if (onCopy) return <button type="button" className="meta-copy" aria-label={copyLabel} onClick={onCopy}>{body}</button>;
+  return <span className="meta-chip">{body}</span>;
+}
+
+/* custom: RequestCard — status dot and word, callout-emphasized title, wrapping meta chips — Figma 4067:5443 */
+function RequestCard({ dot, status, title, chips }) {
+  return (
+    <Card gap={3} className="request">
+      <div className="status">
+        <span className="dot" aria-hidden="true" style={{ background: dot }} />
+        <span className="footnote">{status}</span>
+      </div>
+      <h2 className="callout-emphasized">{title}</h2>
+      <div className="meta-chips">{chips}</div>
+    </Card>
+  );
+}
+
+/* custom: PromoRow — 32px tinted disc, label + wrapping caption, optional chevron or inline button — Figma 4067:5733, 4067:5742 "cell / regular" (rich) */
+function PromoRow({ tint, icon, label, caption, chevron, action, onClick }) {
+  const inner = (
+    <>
+      <span className={'tint-disc ' + tint} aria-hidden="true"><Icon name={icon} size={20} /></span>
+      <span className="promo-text">
+        <span className="lines">
+          <span className="subheadline-emphasized">{label}</span>
+          <span className="footnote muted">{caption}</span>
+        </span>
+        {action}
+      </span>
+      {chevron && <span className="promo-chevron" aria-hidden="true"><Icon name="Ic2Chevron" size={20} /></span>}
+    </>
+  );
+  if (onClick) return <button type="button" className="promo-link" onClick={onClick}>{inner}</button>;
+  return <div className="promo-row">{inner}</div>;
+}
+
+/* custom: PromoTile — half-width card: leading mark, 13px semibold text, small bezeled button — Figma 4067:5931, 4067:5936 */
+function PromoTile({ mark, text, action }) {
+  return (
+    <div className="card tile">
+      {mark}
+      <p className="footnote-emphasized grow">{text}</p>
+      {action}
+    </div>
+  );
+}
+
+/* custom: Photo / Illustration — neutral placeholders: the Figma frame holds raster photos and an illustration that cannot be downloaded */
+function Photo({ label }) { return <span className="photo" role="img" aria-label={label} />; }
+function Illustration({ label }) { return <span className="illustration" role="img" aria-label={label} />; }
+
+/* ---------- screens ---------- */
+
+/* 1. Addresses: NavbarRegular back-action, ItemCard with IconDisc + StatusBadge, AddRow. Figma 4067:4489 */
+function AddressesScreen() {
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular variant="back-action" onBack={noop} title="ДТЕК Світло" actionLabel="Змінити" onAction={noop} /></div>
+      <div className="scroll">
+        <div className="body">
+          <p className="subheadline intro-text">Ви дізнаєтеся про відключення світла за цими адресами.</p>
+          <ItemCard
+            top={<IconDisc icon="Ic2Address" />} eyebrow={'ДТЕК ' + SEP + ' 2 група'} title="просп. Перемоги 10-Б, 127"
+            footer={<StatusBadge tone="off" label="до 15:00 немає світла" />}
+          />
+          <ItemCard
+            top={<IconDisc icon="Ic2Address" />} eyebrow={'ДТЕК ' + SEP + ' 2 група'} title="Velyka Zhytomyrska St, 34"
+            footer={<StatusBadge tone="alert" icon="Ic2AlertFilled" label="екстрене відключення" />}
+          />
+          <AddRow label="Додати адресу" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 2. Cars: the same card with a plate as the title and hairline-separated status rows. Figma 4067:4895 */
+function CarsScreen() {
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular variant="back-action" onBack={noop} title="Автомобілі" actionLabel="Змінити" onAction={noop} /></div>
+      <div className="scroll">
+        <div className="body">
+          <p className="subheadline intro-text">Оплачуйте паркування й отримуйте сповіщення про евакуацію та штрафи за вашим авто.</p>
+          <ItemCard
+            top={<IconDisc icon="Ic2Car" />} eyebrow="Ford Fusion" title="KA 1345 OP"
+            footer={<MetaRows rows={[{ icon: 'Ic2ShieldCheckmark', tone: 'ok', label: 'ОСЦВП', value: 'до 20 червня' }]} />}
+          />
+          <ItemCard
+            top={<IconDisc icon="Ic2Car" />} eyebrow="Tesla Model 3" title="AA 0011 KA"
+            footer={<MetaRows rows={[
+              { icon: 'Ic2ShieldCheckmark', tone: 'warn', label: 'ОСЦВП закінчується', value: 'через 10 днів' },
+              { icon: 'Ic2AlertFilled', tone: 'warn', label: '2 штрафи', value: '680 ₴' },
+            ]} />}
+          />
+          <AddRow label="Додати авто" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 3. Connected statuses: the card without a status badge; title, description and a confirmation line. Figma 4067:4977 */
+const STATUSES = [
+  { icon: 'Ic2Ubd', title: 'Статус Захисника', text: 'Ви підтвердили право на безкоштовне паркування на муніципальних паркінгах.' },
+  { icon: 'Ic2Old', title: 'Пенсійний статус', text: 'Ви підтвердили право на безкоштовний проїзд у громадськму транспорті.' },
+  { icon: 'Ic2Kyiv', title: 'Резидентський статус', text: 'Ви підтвердили право на участь у опитуваннях для резидентів.' },
+];
+
+function ConnectedScreen() {
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular variant="two-icons" onBack={noop} title="Соціальний статус" trailingAction={{ icon: 'Ic2Info', label: 'Про соціальні статуси', onClick: noop }} /></div>
+      <div className="scroll">
+        <div className="body">
+          <p className="subheadline intro-text">Користуйтеся правом на безкоштовні послуги та беріть участь у опитуваннях для резидентів.</p>
+          {STATUSES.map((s) => (
+            <ItemCard key={s.title} top={<IconDisc icon={s.icon} />} title={s.title} description={s.text} footer={<ConfirmedLine label="Підтверджено 20.04.2022" />} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 4. Requests: NavbarEnhanced tabs with a plus in the bar, RequestCard list, AddRow. The number copies and a Toast confirms. Figma 4067:5440 */
+const REQUESTS = [
+  { id: 1, dot: 'var(--vibrant-vibrant-pink)', status: 'На модерації', title: 'Незадовільний стан, недостатня кількість або відсутність контейнерів для сміття', topic: 'Прибирання сміття', topicIcon: 'Ic2Delete', date: '03.06.2026', number: '1-892904' },
+  { id: 2, dot: 'var(--vibrant-vibrant-blue)', status: 'В роботі', title: 'Зберігання транспортних засобів, порушення правил паркування', topic: 'Будівництво, архітектура, землекористування', topicIcon: 'Ic2Shelter', date: '10.05.2026', number: '1-892904' },
+];
+
+function RequestsScreen() {
+  const [tab, setTab] = React.useState(0);
+  const [toast, showToast] = useToast();
+  const copy = (number) => () => { copyText(number); showToast('Номер звернення скопійовано'); };
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarEnhanced
+          type="tabs" title="1551" tabs={['Звернення', 'Архів']} selectedTab={tab} onTabChange={setTab}
+          onBack={noop}
+          trailingAction={{ icon: 'Ic2PlusCircle', label: 'Створити звернення', onClick: noop }}
+        />
+      </div>
+      <div className="scroll">
+        <div className="body">
+          {tab === 0 ? (
+            <>
+              {REQUESTS.map((r) => (
+                <RequestCard
+                  key={r.id} dot={r.dot} status={r.status} title={r.title}
+                  chips={[
+                    <MetaChip key="topic" icon={r.topicIcon}>{r.topic}</MetaChip>,
+                    <MetaChip key="date" icon="Ic2Time">{r.date}</MetaChip>,
+                    <MetaChip key="number" icon="Ic2Copy" copyLabel={'Копіювати номер звернення ' + r.number} onCopy={copy(r.number)}>{r.number}</MetaChip>,
+                  ]}
+                />
+              ))}
+              <AddRow label="Створити звернення" />
+            </>
+          ) : (
+            <p className="subheadline empty">Закритих звернень поки немає.</p>
+          )}
+        </div>
+      </div>
+      {toast}
+    </div>
+  );
+}
+
+/* 5. Donor: rich rows in one card (tinted disc, long caption, chevron or inline Button), then one Cell per card. Figma 4067:5729 */
+const PAST = [
+  { id: 1, label: '18 червня', caption: 'Охматдит · Донація' },
+  { id: 2, label: '20 липня', caption: 'Інститут ім. М. М. Амосова · Скасовано' },
+  { id: 3, label: '11 листопада 2025', caption: 'Інститут ім. М. М. Амосова · Скасовано' },
+  { id: 4, label: '11 листопада 2025', caption: 'Інститут ім. М. М. Амосова · Скасовано' },
+  { id: 5, label: '11 листопада 2025', caption: 'Інститут ім. М. М. Амосова · Скасовано' },
+  { id: 6, label: '11 листопада 2025', caption: 'Інститут ім. М. М. Амосова · Скасовано' },
+  { id: 7, label: '11 листопада 2025', caption: 'Інститут ім. М. М. Амосова · Скасовано' },
+];
+
+function DonorScreen() {
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular variant="two-icons" onBack={noop} title="Донорство крові" trailingAction={{ icon: 'Ic2Info', label: 'Про донорство', onClick: noop }} /></div>
+      <div className="scroll">
+        <div className="body wide">
+          <div className="card promo">
+            <PromoRow tint="green" icon="Ic2HeartFilled" label="Довідка донора" caption="Дізнайтеся, як планувати донації та готуватися до них" chevron onClick={noop} />
+            <div className="promo-divider" />
+            <PromoRow
+              tint="blue" icon="Ic2AddCalendar" label="Запис з 10 жовтня" caption="Завчасно плануйте донації та допомагайте міським лікарням"
+              action={<Button className="tap-s" size="small" fullWidth label="Записатися на донацію" onClick={noop} />}
+            />
+          </div>
+          <div>
+            <ListCaption label="Минулі записи" />
+            <div className="stack">
+              {PAST.map((p) => (
+                <Card padding="list" key={p.id}>
+                  <Cell label={p.label} caption={p.caption} accessory="chevron" style={{ height: 'auto' }} onClick={noop} />
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* 6. Deputies: NavbarEnhanced tabs, two PromoTiles, a ListCaption, DeputyCards with a favourite Button, a FAB. Figma 4067:5928 */
+const DEPUTIES = [
+  { id: 1, eyebrow: 'Без округу ' + SEP + ' Європейська Солідарність', name: 'Прокопів Володимир Володимирович', fav: true },
+  { id: 2, eyebrow: 'Округ 2 ' + SEP + ' УДАР Віталія Кличка', name: 'Пинзеник Олеся Олександрівна', fav: false },
+  { id: 3, eyebrow: 'Округ 1 ' + SEP + ' Позафракційний', name: 'Галайчук Ігор Васильович', fav: false },
+  { id: 4, eyebrow: 'Округ 2' + SEP + ' Фракція «Європейська Солідарність»', name: 'Матусевич Олеся Олександрівна', fav: false },
+  { id: 5, eyebrow: 'Округ 2' + SEP + ' Фракція «Європейська Солідарність»', name: 'Матусевич Олеся Олександрівна', fav: false },
+];
+
+function DeputiesScreen() {
+  const [tab, setTab] = React.useState(0);
+  const [favs, setFavs] = React.useState(() => DEPUTIES.filter((d) => d.fav).map((d) => d.id));
+  const toggle = (id) => setFavs((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarEnhanced
+          type="tabs" title="Міська рада" tabs={['Депутати', 'Пленарні засідання']} selectedTab={tab} onTabChange={setTab}
+          onBack={noop}
+          trailingAction={{ icon: 'Ic2Search', label: 'Пошук', onClick: noop }}
+        />
+      </div>
+      <div className="scroll">
+        <div className="body pad-fab">
+          {tab === 0 ? (
+            <>
+              <div className="tiles">
+                <PromoTile
+                  mark={<IconDisc icon="Ic2Address" />} text="Пошук депутатів вашого округу"
+                  action={<Button className="tap-s" variant="bezeled" size="small" label="Знайти" onClick={noop} />}
+                />
+                <PromoTile
+                  mark={<Illustration label="Ілюстрація довідника: місце для картинки" />} text="Довідник активного містянина"
+                  action={<Button className="tap-s" variant="bezeled" size="small" label="Переглянути" onClick={noop} />}
+                />
+              </div>
+              <ListCaption label="120 депутатів IX скликання" />
+              {DEPUTIES.map((d) => {
+                const on = favs.includes(d.id);
+                return (
+                  <ItemCard
+                    key={d.id} titleClass="callout-emphasized" eyebrow={d.eyebrow} title={d.name}
+                    top={(
+                      <div className="item-top">
+                        <Photo label="Фото депутата: місце для фото" />
+                        <Button
+                          className="tap-s" variant={on ? 'primary' : 'secondary'} size="small" iconPosition="only"
+                          icon={<Icon name={on ? 'Ic2StarFilled' : 'Ic2Star'} />}
+                          aria-label={(on ? 'Прибрати з обраних: ' : 'Додати до обраних: ') + d.name} onClick={() => toggle(d.id)}
+                        />
+                      </div>
+                    )}
+                  />
+                );
+              })}
+            </>
+          ) : (
+            <p className="subheadline empty">Пленарних засідань поки немає.</p>
+          )}
+        </div>
+      </div>
+      <div className="slot-fab-center"><FAB icon={<Icon name="Ic2Adjust" />} label="Фільтрувати" onClick={noop} /></div>
+    </div>
+  );
+}
+
+const FRAMES = [
+  { id: '4067:4489', name: '1.0 - adresses', copy: 'NavbarRegular back-action · custom ItemCard, IconDisc, StatusBadge, AddRow', Screen: AddressesScreen },
+  { id: '4067:4895', name: '1.0 - list', copy: 'NavbarRegular back-action · custom ItemCard with MetaRows (plate as title), AddRow', Screen: CarsScreen },
+  { id: '4067:4977', name: '2.0 - connected', copy: 'NavbarRegular two-icons · custom ItemCard with ConfirmedLine', Screen: ConnectedScreen },
+  { id: '4067:5440', name: '1 - list ', copy: 'NavbarEnhanced tabs · custom RequestCard, MetaChip, AddRow · Toast on copy', Screen: RequestsScreen },
+  { id: '4067:5729', name: 'list', copy: 'NavbarRegular two-icons · custom PromoRow in a card · Button small · ListCaption · Cell, one card per row. Content runs below the 812 fold: inner scroll', Screen: DonorScreen },
+  { id: '4067:5928', name: '1.0 - list', copy: 'NavbarEnhanced tabs · custom PromoTile, ItemCard with a favourite Button · ListCaption · FAB. Content runs below the 812 fold: inner scroll', Screen: DeputiesScreen },
+];
+
+function Page() {
+  const [themeIndex, setThemeIndex] = React.useState(0);
+  const theme = ['light', 'dark'][themeIndex];
+  return (
+    <main className="page">
+      <header className="intro">
+        <h1 className="title1-emphasized">Lists</h1>
+        <p className="callout">Six screens from the Figma section «lists»: lists of the user's own things (addresses, cars, statuses, requests, appointments, saved deputies). Two idioms: one grouped block of Cells, and one card per item with a link-coloured add row last. Public components are used where they exist; the rest is small custom pieces on tokens.</p>
+        <div className="switch-row">
+          <span className="footnote-emphasized">Theme</span>
+          <div className="seg"><SegmentedControl options={['Світла', 'Темна']} value={themeIndex} onChange={setThemeIndex} /></div>
+        </div>
+      </header>
+      <div className="phones">
+        {FRAMES.map(({ id, name, copy, Screen }, i) => (
+          <figure className="demo" key={id}>
+            <figcaption>
+              <span className="footnote-emphasized">{i + 1}. «{name.trim()}» · Figma {id}</span>
+              <span className="footnote muted">{copy}</span>
+            </figcaption>
+            <div className="phone" data-theme={theme}><Screen /></div>
+          </figure>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!-- @dsCard group="Navigation" height=1115 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.col{display:flex;flex-direction:column;gap:12px;width:343px}.lbl{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);width:72px;flex-shrink:0}.grp{width:343px;background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden}.stack{display:flex;flex-direction:column;gap:16px;align-items:flex-start}.theme{display:flex;flex-direction:column;gap:16px;padding:16px 0;background:var(--background-bg-background);color:var(--content-content-primary)}.cap{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary)}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { NavbarEnhanced } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  const [tab, setTab] = React.useState(0);
+  const [query, setQuery] = React.useState("Паркування");
+  const noop = () => {};
+  const bars = (theme) => h("div", { "data-theme": theme, className: "theme", style: { width: 375 } },
+    h("span", { className: "cap", style: { padding: "0 16px" } }, theme),
+    h(NavbarEnhanced, { type: "search", title: "Сервіси" }),
+    h(NavbarEnhanced, { type: "search", title: "Сервіси", searchValue: query, onSearchChange: setQuery, onBack: noop,
+      trailingAction: { icon: "Ic2Info", label: "Інформація", onClick: noop } }),
+    h(NavbarEnhanced, { type: "tabs", title: "Мої заявки", tabs: ["Активні", "Архів"], selectedTab: tab, onTabChange: setTab, onBack: noop,
+      trailingAction: { icon: "Ic2PlusCircle", label: "Нова заявка", onClick: noop } }));
+  return h("div", { className: "stack", style: { width: 375, gap: 0 } }, bars("light"), bars("dark"));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

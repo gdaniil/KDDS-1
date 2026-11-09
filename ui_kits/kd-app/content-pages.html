@@ -1,0 +1,770 @@
+<!-- @dsCard group="KD App (iOS)" page height=2913 width=1270 subtitle="Detail pages as shipped: status, sessions, queues, approvals" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inner content pages</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  :root {
+    --phone-w: 375px;
+    /* from Figma, not a system token: the read-only licence plate (Figma 4067:7550). The strip and flag colours are the same literals LicensePlate.jsx uses; the number is SF Mono, outside the type scale. */
+    --plate-ua-blue: #2170cf;
+    --plate-flag-blue: #21a7e9;
+    --plate-flag-yellow: #feee24;
+    --plate-num-size: 22px;
+    --plate-region-size: 10px;
+  }
+
+  /* Page chrome around the phones (English). Everything inside .phone is system components plus the custom pieces below, all on tokens. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 3 + var(--space-5) * 4 + var(--space-5) * 2); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page h2, .page p { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-2); }
+  .toolbar { display: flex; align-items: center; gap: var(--space-3); }
+  .toolbar .switch { width: 220px; }
+  .panel { box-sizing: border-box; padding: var(--space-5); border-radius: var(--radius-card); background: var(--background-bg-subtle); overflow-x: auto; }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; align-items: start; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; gap: var(--space-1); min-height: calc(var(--space-6) * 3 + var(--space-2)); }
+  /* From 481px up the phones always fit, so the panel clips instead of scrolling: a scroll container would stop the Toast sticking to the viewport. */
+  @media (min-width: 481px) { .panel { overflow-x: clip; } }
+  @media (max-width: 480px) {
+    .page { padding: 0; }
+    .intro, .toolbar { padding: 0 var(--space-4); }
+    .panel { padding: var(--space-4) 0; border-radius: 0; }
+    .demo figcaption { padding: 0 var(--space-4); }
+  }
+
+  /* The phone: a plain 375-wide frame. data-theme on it switches every token inside. The navbar draws the status bar; there is no tab bar (the system has none). */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); overflow: clip; /* square corners, no border or outline: the frame is a plain rectangle */ background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .phone :is(h2, h3, p, dl, dd, ol, ul) { margin: 0; padding: 0; }
+  .phone :is(ol, ul) { list-style: none; }
+  .screen { display: flex; flex-direction: column; height: 100%; }
+  /* A frame that is not clipped in Figma keeps at least the Figma height and grows to its content, so nothing is hidden. */
+  .phone.fit { height: auto; display: flex; flex-direction: column; }
+  .phone.fit .screen { flex: 1 1 auto; height: auto; }
+  .top { flex: none; }
+  .scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  /* The Toast sits 16px above the bottom of the frame, and sticks to the bottom of the viewport while a tall frame is partly off screen. */
+  .slot-bottom { position: sticky; bottom: 0; z-index: 3; height: 0; margin: 0 var(--space-4); pointer-events: none; }
+  .slot-bottom > * { transform: translateY(calc(-100% - var(--space-4))); }
+
+  /* Layout helpers shared by the six pages. */
+  .body4 { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-1) 0 var(--space-5); }
+  .body16 { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-4); }
+  .stack1 { display: flex; flex-direction: column; gap: var(--space-1); }
+  .stack2 { display: flex; flex-direction: column; gap: var(--space-2); }
+  .stack3 { display: flex; flex-direction: column; gap: var(--space-3); }
+  .stack4 { display: flex; flex-direction: column; gap: var(--space-4); }
+  .center { align-items: center; text-align: center; }
+  .secondary { color: var(--content-content-secondary); }
+  .accent { color: var(--content-content-accent); }
+  .link { color: var(--content-content-link); }
+  .reset { appearance: none; background: none; border: 0; padding: 0; margin: 0; font-family: inherit; color: inherit; text-align: left; cursor: pointer; }
+  .reset:focus-visible, .tappable:focus-visible { outline: 2px solid var(--border-border-accent); outline-offset: 2px; }
+  /* A 24px row or icon that must be tapped: the tap area grows to 44-48px without moving anything. */
+  .hit { position: relative; }
+  .hit::after { content: ""; position: absolute; top: calc(var(--space-3) * -1); right: calc(var(--space-1) * -1); bottom: calc(var(--space-3) * -1); left: calc(var(--space-1) * -1); }
+  .hit-sm::after { top: calc(var(--space-1) * -1); bottom: calc(var(--space-1) * -1); left: 0; right: 0; }
+
+  /* Sections are the system Card (padding="large"). */
+  .tappable { cursor: pointer; }
+  .tappable:active { opacity: 0.7; }
+  .hair { flex: none; height: 1px; background: var(--border-border-regular); }
+  .icon-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: none; }
+  .icon-btn::after { content: ""; position: absolute; top: calc(var(--space-3) * -1); right: calc(var(--space-3) * -1); bottom: calc(var(--space-3) * -1); left: calc(var(--space-3) * -1); }
+
+  /* custom: StatusLine */
+  .status { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+  .status.end { flex-direction: row-reverse; }
+  .dot { flex: none; width: 16px; height: 16px; border-radius: var(--radius-pill); }
+  .dot.accent { background: var(--background-bg-accent); }
+  .dot.positive { background: var(--background-bg-positive); }
+  .dot.warning { background: var(--background-bg-warning); }
+
+  /* custom: TimelineStep */
+  .steps { display: flex; flex-direction: column; gap: var(--space-4); }
+  .step { display: flex; align-items: flex-start; gap: var(--space-3); }
+  .step-mark { flex: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; box-sizing: border-box; }
+  .step-mark.pending { border: 2px solid var(--border-border-regular); border-radius: var(--radius-pill); }
+  .phone[data-theme="dark"] .step-mark.pending { border-color: var(--content-content-disabled); }
+  .step-mark.current { color: var(--content-content-accent); }
+  .step-mark.done { color: var(--content-content-secondary); }
+  .step-txt { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+
+  /* custom: DetailField */
+  .kv { display: flex; flex-direction: column; gap: var(--space-4); }
+  .kv-item { display: flex; align-items: center; gap: var(--space-1); }
+  .kv-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+  .kv-text dd { white-space: pre-line; overflow-wrap: anywhere; }
+  .photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+  .ph { height: 138px; border-radius: var(--radius-control); background: var(--background-bg-subtle); border: 1px solid var(--border-border-regular); box-sizing: border-box; }
+
+  /* custom: VoteBar */
+  .votebar { display: flex; gap: var(--space-1); height: 12px; }
+  .votebar > span { min-width: 0; border-radius: var(--radius-sm); }
+  .votebar .yes { background: var(--background-bg-positive); }
+  .votebar .no { background: var(--background-bg-warning); }
+  .legend { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+
+  /* custom: OutRow, AvatarStack */
+  .out-row { display: flex; align-items: center; gap: var(--space-4); width: 100%; min-height: 24px; }
+  .out-row .grow { flex: 1 1 0; min-width: 0; }
+  .out-trail { display: flex; align-items: center; flex: none; gap: 0; }
+  .avatars { display: flex; margin-right: 0; }
+  .avatar { display: flex; flex: none; width: 24px; height: 24px; box-sizing: border-box; border: 1px solid var(--background-bg-surface); border-radius: var(--radius-pill); background: var(--background-bg-surface); overflow: hidden; margin-right: calc(var(--space-2) * -1); }
+  .avatar:last-child { margin-right: 0; }
+
+  /* custom: ResultCard, TagPill */
+  .result-head { display: flex; align-items: center; gap: var(--space-2); }
+  .result-head .status { flex: 1 1 0; }
+.phone .section-title { box-sizing: border-box; padding: var(--space-5) var(--space-5) var(--space-2); }
+  .tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .tag { display: inline-flex; align-items: center; height: 26px; padding: 0 var(--space-2); border-radius: var(--radius-pill); background: var(--background-bg-subtle); color: var(--content-content-primary); white-space: nowrap; }
+  .tag.accent { background: var(--background-bg-accent-subtle); color: var(--content-content-accent); }
+
+  /* custom: BookCover (a generated cover: brand yellow and navy stay the same in both themes) */
+  .book { display: flex; gap: var(--space-4); }
+  .book-main { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; align-self: stretch; padding: var(--space-4) 0; }
+  .cover { position: relative; box-sizing: border-box; flex: none; width: 140px; height: 215px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4); border-radius: var(--radius-sm); background: var(--vibrant-vibrant-yellow); color: var(--vibrant-vibrant-dark-blue); }
+  .cover-txt { display: flex; flex-direction: column; gap: var(--space-1); }
+  .cover-author { opacity: 0.4; }
+  .spine { position: absolute; top: 0; bottom: 0; background: var(--vibrant-vibrant-dark-blue); opacity: 0.1; }
+  .spine.a { left: 0; width: 6px; }
+  .spine.b { left: 8px; width: 2px; }
+
+  /* custom: RichRow, TintDisc */
+  .rich { display: flex; gap: var(--space-3); width: 100%; align-items: center; }
+  .rich.top { align-items: flex-start; }
+  .rich-txt { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+  .disc { display: flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; border-radius: var(--radius-pill); }
+  .disc.green { background: var(--vibrant-vibrant-green-10); color: var(--content-content-positive); }
+  .disc.orange { background: var(--vibrant-vibrant-orange-10); color: var(--content-content-warning); }
+  .avatar-lg { display: flex; flex: none; width: 40px; height: 40px; overflow: hidden; border-radius: var(--radius-pill); }
+  .actions-row { display: flex; align-items: center; gap: var(--space-2); }
+  .actions-row .grow { flex: 1 1 0; min-width: 0; }
+
+  /* custom: LinkRow */
+  .link-row { display: flex; align-items: center; gap: var(--space-3); width: 100%; box-sizing: border-box; height: 48px; padding: 0 var(--space-4); color: var(--content-content-link); }
+  .link-row span:last-child { flex: 1 1 0; min-width: 0; }
+
+  /* custom: StepRow, SummaryRow, QrPlaceholder */
+  .stp { display: flex; align-items: center; gap: var(--space-2); }
+  .badge { display: flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; border-radius: var(--radius-pill); color: var(--content-content-primary-invert); background: var(--background-bg-background-invert); }
+  .badge.current { background: var(--background-bg-accent); }
+  .stp-txt { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+  .summary { box-sizing: border-box; padding: var(--space-2) var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
+  .sum-line { display: flex; align-items: center; gap: var(--space-3); }
+  .sum-line span:first-child { flex: 1 1 0; min-width: 0; }
+  .sum-line span:last-child { flex: none; white-space: nowrap; text-align: right; }
+  .sum-link { display: inline-flex; align-items: center; align-self: flex-start; color: var(--content-content-accent); }
+  .qr { display: flex; align-items: center; justify-content: center; width: 260px; height: 260px; max-width: 100%; box-sizing: border-box; border-radius: var(--radius-sm); background: var(--background-bg-subtle); border: 1px solid var(--border-border-regular); color: var(--content-content-secondary); }
+
+  /* custom: PolicyStatus, PlateDisplay, FactRow */
+  .plate { display: inline-flex; gap: 2px; box-sizing: border-box; height: 32px; padding: 2px; border-radius: 4px; background: var(--background-bg-background-invert); border: 1px solid var(--border-border-regular); }
+  .plate-ua { display: flex; flex-direction: column; align-items: center; justify-content: space-between; box-sizing: border-box; padding: var(--space-1); border-radius: 2px; background: var(--plate-ua-blue); color: var(--content-content-primary-invert); }
+  .plate-flag { display: flex; flex-direction: column; }
+  .plate-flag i { display: block; width: 14px; height: 4px; }
+  .plate-flag i:first-child { background: var(--plate-flag-blue); }
+  .plate-flag i:last-child { background: var(--plate-flag-yellow); }
+  .plate-region { font-family: var(--font-mono); font-size: var(--plate-region-size); font-weight: 700; line-height: 1; }
+  .plate-num { display: flex; align-items: center; padding: 0 var(--space-1); border-radius: 2px; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-mono); font-size: var(--plate-num-size); font-weight: 500; text-transform: uppercase; white-space: nowrap; }
+  .fact { display: flex; align-items: center; gap: var(--space-2); }
+  .fact-ic { flex: none; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
+  .fact-label { flex: 1 1 0; min-width: 0; }
+  .fact-value { flex: 0 1 auto; min-width: 0; text-align: right; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { Button, Cell, Icon, NavbarRegular, SegmentedControl, Toast } = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+const { Card } = window.KyivDigitalDesignSystem_728336; // the system surface block
+
+// A Toast is shown for a moment: keep it in state, clear it with a timer, and place it at the bottom of the screen.
+function useToast() {
+  const [toast, setToast] = React.useState(null);
+  const timer = React.useRef(0);
+  const show = (label, type = 'success') => {
+    clearTimeout(timer.current);
+    setToast({ label, type });
+    timer.current = setTimeout(() => setToast(null), 2500);
+  };
+  React.useEffect(() => () => clearTimeout(timer.current), []);
+  const node = (
+    <div className="slot-bottom" aria-live="polite">
+      {toast && <Toast type={toast.type} label={toast.label} />}
+    </div>
+  );
+  return [node, show];
+}
+
+function copyText(text) {
+  try {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(noop);
+  } catch (e) { /* clipboard is optional: the Toast still confirms the tap */ }
+}
+
+/* ---------- custom pieces: small, named, free in shape, strict in tokens ---------- */
+
+/* Section — a full-width section of a detail page, 4px apart — Figma 4067:5635. It is the system Card (padding="large", radius-control,
+   shadow-elevation); this wrapper only carries the frames' one-off paddings (`pad`) and gaps as CSS values. */
+function Section({ pad, gap, as = 'section', children, ...rest }) {
+  return <Card as={as} padding="large" style={pad ? { padding: pad, gap } : { gap }} {...rest}>{children}</Card>;
+}
+
+/* custom: Hairline — 1px divider, border-regular — Figma 4067:6134 (351px line inside a 24px-padded block) */
+function Hairline({ inset = 0 }) {
+  return <div className="hair" role="separator" style={{ margin: '0 ' + inset }} />;
+}
+
+/* The detail navbar is NavbarRegular transparent (no fill, no divider, no title) with onBack and this share action — Figma 4067:5630 */
+const SHARE = { icon: 'Ic2ShareIos', label: 'Поділитися', onClick: noop };
+
+/* custom: StatusLine — 16px status dot plus the status in words, never colour alone — Figma 4067:5637 */
+function StatusLine({ tone = 'accent', label, end = false, className = '' }) {
+  return (
+    <div className={'status ' + (end ? 'end ' : '') + className}>
+      <span className={'dot ' + tone} aria-hidden="true" />
+      <span className="footnote">{label}</span>
+    </div>
+  );
+}
+
+/* custom: TimelineStep — 24px marker (done / current / pending), date, then the event — Figma 4067:5643 */
+const MARK = {
+  done: { icon: 'Ic2CheckFilled', text: 'Виконано' },
+  current: { icon: 'Ic2ArrowRightFilled', text: 'Поточний етап' },
+  pending: { icon: null, text: 'Очікується' },
+};
+function TimelineStep({ state, date, text }) {
+  const m = MARK[state];
+  return (
+    <li className="step">
+      <span className={'step-mark ' + state} role="img" aria-label={m.text}>{m.icon && <Icon name={m.icon} size={24} />}</span>
+      <div className="step-txt">
+        <span className="footnote secondary">{date}</span>
+        <span className="subheadline">{text}</span>
+      </div>
+    </li>
+  );
+}
+
+/* custom: DetailField — label stacked over its value, optional trailing action; several values for a list like opening hours — Figma 4067:5670 */
+function DetailField({ label, values, action }) {
+  const list = Array.isArray(values) ? values : [values];
+  return (
+    <div className="kv-item">
+      <dl className="kv-text">
+        <dt className="footnote secondary">{label}</dt>
+        {list.map((v) => <dd key={v} className="subheadline-emphasized">{v}</dd>)}
+      </dl>
+      {action}
+    </div>
+  );
+}
+
+/* custom: PhotoTile — placeholder: report photos are raster assets that are not available here — Figma 4067:5693 */
+function PhotoTile({ n }) {
+  return <div className="ph" role="img" aria-label={'Фото звернення ' + n} />;
+}
+
+/* custom: VoteBar — two proportional segments, radius-sm, 4px apart; the counts below say the same in words — Figma 4067:6123 */
+function VoteBar({ yes, no }) {
+  return (
+    <div className="votebar" role="img" aria-label={'Прийнято ' + yes + ', не прийнято ' + no}>
+      <span className="yes" style={{ flexGrow: yes }} />
+      <span className="no" style={{ flexGrow: no }} />
+    </div>
+  );
+}
+
+/* custom: AvatarStack — three 24px avatars overlapping by 8px, ringed in the surface colour; placeholder: deputy photos are raster assets — Figma 4067:6137 */
+function AvatarStack() {
+  return (
+    <span className="avatars" aria-hidden="true">
+      {[0, 1, 2].map((i) => <span className="avatar" key={i}><Icon name="Ic2ProfileEmpty" size={24} /></span>)}
+    </span>
+  );
+}
+
+/* custom: OutRow — one line label with a trailing glyph (chevron, avatars, external-link), tap area 48px tall — Figma 4067:6135 */
+function OutRow({ label, trailing }) {
+  return (
+    <button type="button" className="reset hit out-row" onClick={noop}>
+      <span className="subheadline-emphasized grow">{label}</span>
+      <span className="out-trail">{trailing}</span>
+    </button>
+  );
+}
+
+/* custom: TagPill — 11px chip, `accent` for the reference number, neutral for the date — Figma 4067:6164 */
+function TagPill({ tone, children }) {
+  return <span className={'tag caption2-emphasized ' + (tone || '')}>{children}</span>;
+}
+
+/* custom: ResultCard — a whole card that opens one vote: result, title, tags; Card onClick makes it one real button — Figma 4067:6156 */
+function ResultCard({ tone = 'positive', status, title, titleClass = 'callout-emphasized', tags, chevron = true }) {
+  return (
+    <Card padding="large" gap={4} onClick={noop}>
+      <div className="result-head">
+        <StatusLine tone={tone} label={status} className="grow" />
+        {chevron && <span style={{ marginLeft: 'auto', display: 'flex' }}><Icon name="Ic2Chevron" size={24} /></span>}
+      </div>
+      <p className={titleClass}>{title}</p>
+      {tags && <div className="tags">{tags}</div>}
+    </Card>
+  );
+}
+
+/* custom: BookCover — the generated cover shown when the library has no scan: brand yellow, Ic2Kd, title and author, two spine strips — Figma 4067:6268 */
+function BookCover({ title, author }) {
+  return (
+    <div className="cover" role="img" aria-label={'Обкладинка: ' + title + ', ' + author}>
+      <Icon name="Ic2Kd" size={16} />
+      <div className="cover-txt">
+        <span className="caption1-emphasized">{title}</span>
+        <span className="caption2 cover-author">{author}</span>
+      </div>
+      <i className="spine a" /><i className="spine b" />
+    </div>
+  );
+}
+
+/* custom: TintDisc — 40px disc tinted green or orange with a 20px glyph — Figma 4067:6283 */
+function TintDisc({ tone, icon }) {
+  return <span className={'disc ' + tone} aria-hidden="true"><Icon name={icon} size={20} /></span>;
+}
+
+/* custom: RichRow — 40px lead (avatar or TintDisc), overline, title, optional body and chevron — Figma 4067:6275 */
+function RichRow({ lead, overline, title, body, chevron, onClick }) {
+  const inner = (
+    <>
+      {lead}
+      <span className="rich-txt">
+        {overline && <span className="footnote secondary">{overline}</span>}
+        <span className="subheadline-emphasized">{title}</span>
+        {body && <span className="footnote">{body}</span>}
+      </span>
+      {chevron && <Icon name="Ic2Chevron" size={24} />}
+    </>
+  );
+  return onClick
+    ? <button type="button" className="reset hit hit-sm rich" onClick={onClick}>{inner}</button>
+    : <div className={'rich ' + (body ? 'top' : '')}>{inner}</div>;
+}
+
+/* Button size="small" is 32px tall and keeps no larger tap area (the README says it does): pad the button box by 8px and pull it back with the same negative margin, so the hit area is 48px tall and the layout stays as drawn. */
+function SmallButton(props) {
+  return <Button size="small" {...props} style={{ padding: 'var(--space-2) 0', margin: 'calc(var(--space-2) * -1) 0' }} />;
+}
+
+/* custom: LinkRow — 48px row, 24px glyph and label in content-link; `Cell` has no link tone yet — Figma 4067:6321 */
+function LinkRow({ icon, label, onClick = noop, inset = 'var(--space-4)' }) {
+  return (
+    <button type="button" className="reset link-row subheadline-emphasized" style={{ paddingLeft: inset, paddingRight: inset }} onClick={onClick}>
+      <Icon name={icon} size={24} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+/* custom: StepRow — 24px badge, title, time or description; `current` is the accent step — Figma 4067:6790 */
+function StepRow({ state, title, text }) {
+  const current = state === 'current';
+  return (
+    <li className="stp">
+      <span className={'badge ' + state} role="img" aria-label={current ? 'Поточний крок' : 'Виконано'}><Icon name="Ic2Check" size={16} /></span>
+      <div className="stp-txt">
+        <span className={'subheadline-emphasized ' + (current ? 'accent' : '')}>{title}</span>
+        <span className="caption1-emphasized">{text}</span>
+      </div>
+    </li>
+  );
+}
+
+/* custom: SummaryRow — label and amount on one line, a small link under it — Figma 4067:6808 */
+function SummaryRow({ label, amount, linkLabel }) {
+  return (
+    <div className="summary">
+      <div className="sum-line subheadline-emphasized"><span>{label}</span><span>{amount}</span></div>
+      <button type="button" className="reset hit sum-link footnote-emphasized" onClick={noop}>
+        <span>{linkLabel}</span><Icon name="Ic2Chevron" size={20} />
+      </button>
+    </div>
+  );
+}
+
+/* custom: QrPlaceholder — placeholder: the QR code is a generated image, not available here — Figma 4067:6787 */
+function QrPlaceholder() {
+  return <div className="qr" role="img" aria-label="QR-код для штрафмайданчика"><Icon name="Ic2Qr" size={48} /></div>;
+}
+
+/* custom: PlateDisplay — read-only 32px licence plate; LicensePlate is a 48px input, so it cannot show a plate — Figma 4067:7550 */
+function PlateDisplay({ value }) {
+  return (
+    <div className="plate" role="img" aria-label={'Номер авто ' + value}>
+      <span className="plate-ua"><span className="plate-flag"><i /><i /></span><span className="plate-region">UA</span></span>
+      <span className="plate-num">{value}</span>
+    </div>
+  );
+}
+
+/* custom: FactRow — optional 20px glyph, primary label, right-aligned value; CellDataRow has no glyph and a quiet label — Figma 4067:7560 */
+function FactRow({ icon, label, value }) {
+  return (
+    <div className="fact">
+      <span className="fact-ic" aria-hidden="true">{icon && <Icon name={icon} size={20} />}</span>
+      <span className="subheadline fact-label">{label}</span>
+      <span className="subheadline fact-value">{value}</span>
+    </div>
+  );
+}
+
+/* A Cell with a caption and a leading glyph in the link colour: the contact rows of the library and policy pages. */
+function ContactCell({ icon, label, caption }) {
+  return (
+    <Cell
+      label={label} caption={caption} accessory="none" onClick={noop}
+      icon={<span className="link" style={{ display: 'flex' }}><Icon name={icon} size={24} /></span>}
+    />
+  );
+}
+
+/* ---------- 1 · in progress — Figma 4067:5628 ---------- */
+const STEPS = [
+  { state: 'pending', date: '1 вересня 2026', text: 'Орієнтовна дата виконання' },
+  { state: 'current', date: '11 серпня 2026 16:08', text: 'Призначено виконавця: Над зверненням працюватиме Святошинська РДА.' },
+  { state: 'done', date: '11 серпня 2026 16:07', text: 'Звернення зареєстровано: Тип звернення “Зберігання транспортних засобів, порушення правил паркування”' },
+  { state: 'done', date: '8 серпня 2026 11:10', text: 'На модерації: Ми перевіряємо коректність вашого звернення та шукаємо виконавця для нього.' },
+  { state: 'done', date: '8 серпня 2026 11:00', text: 'Звернення подано' },
+];
+
+function InProgressScreen() {
+  const [toast, showToast] = useToast();
+  const copyNumber = () => { copyText('1-892904'); showToast('Номер звернення скопійовано'); };
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular transparent onBack={noop} trailingAction={SHARE} /></div>
+      <div className="scroll">
+        <div className="body4">
+          <Section gap="var(--space-3)">
+            <StatusLine tone="accent" label="В роботі" />
+            <h2 className="title3-emphasized">Зберігання транспортних засобів, порушення правил паркування</h2>
+          </Section>
+          <Section gap="var(--space-4)">
+            <h3 className="title3-emphasized">Прогрес</h3>
+            <ol className="steps">{STEPS.map((s) => <TimelineStep key={s.text} {...s} />)}</ol>
+          </Section>
+          <Section gap="var(--space-4)">
+            <h3 className="title3-emphasized">Деталі звернення</h3>
+            <div className="kv">
+              <DetailField label="Тема звернення" values="Будівництво, архітектура, землекористування" />
+              <DetailField label="Місце проблеми" values="просп. Перемоги 10-Б, 127" />
+              <DetailField
+                label="Номер" values="1-892904"
+                action={<button type="button" className="reset hit icon-btn" aria-label="Копіювати номер звернення" onClick={copyNumber}><Icon name="Ic2Copy" size={24} /></button>}
+              />
+              <DetailField label="Виконавець" values="Святошинська РДА" />
+              <DetailField label="Дата звернення" values="04.08.2026" />
+              <DetailField label="Опис проблеми" values={'Переповнений контейнер на вул. Хрещатик, 22.\n\nКонтейнери не вивозили третій день, сміття лежить навколо майданчика між третім і четвертим під’їздом.'} />
+              <dl className="stack1">
+                <dt className="footnote secondary">Фото</dt>
+                <dd className="photos"><PhotoTile n={1} /><PhotoTile n={2} /></dd>
+              </dl>
+            </div>
+          </Section>
+        </div>
+      </div>
+      {toast}
+    </div>
+  );
+}
+
+/* ---------- 2.1 · session — Figma 4067:6111 ---------- */
+function SessionScreen() {
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular transparent onBack={noop} trailingAction={SHARE} /></div>
+      <div className="scroll">
+        <div className="body4">
+          <Section gap="var(--space-4)">
+            <div className="stack3">
+              <h2 className="title3-emphasized">3 лютого 2025<br />ІІ сесія Київської міської ради</h2>
+              <div className="stack3">
+                <p className="footnote secondary">Рішення на засіданні</p>
+                <VoteBar yes={12} no={3} />
+                <div className="legend">
+                  <StatusLine tone="positive" label="Прийнято 12" />
+                  <StatusLine tone="warning" label="Не прийнято 3" end />
+                </div>
+              </div>
+            </div>
+            <Hairline inset="calc(var(--space-3) * -1)" />
+            <OutRow label="94 депутати на засіданні" trailing={<><AvatarStack /><Icon name="Ic2Chevron" size={24} /></>} />
+            <Hairline inset="calc(var(--space-3) * -1)" />
+            <OutRow label="Перелік питань на розгляд" trailing={<Icon name="Ic2ExternalLink" size={24} />} />
+            <Hairline inset="calc(var(--space-3) * -1)" />
+            <OutRow label="Результати поіменного голосування" trailing={<Icon name="Ic2ExternalLink" size={24} />} />
+            <Hairline inset="calc(var(--space-3) * -1)" />
+            <OutRow label="Відеозапис засідання" trailing={<Icon name="Ic2ExternalLink" size={24} />} />
+          </Section>
+          <h3 className="title3-emphasized section-title">Результати голосування</h3>
+          <ResultCard
+            status="Прийнято, 77 голосів"
+            title="Про скасування рішень постійної комісії Київської міської ради з питань власності та регуляторної політики та включення до Переліку другого типу частини нежитлових приміщень комунальної власності територіальної громади міста Києва"
+            tags={<><TagPill tone="accent">№ 23/1451</TagPill><TagPill>12 лютого 2025</TagPill></>}
+          />
+          <ResultCard
+            status="Прийнято, 79 голосів за"
+            title="За внесення до порядку денного питання про продовження дії міської цільової програми з організації військової служби, виконання військового обов’язку, мобілізаційної підготовки і територіальної оборони у місті Києві «Захисник Києва» на 2022-2025 роки» на 2026 рік та внесення змін до рішення Київської міської ради від 20 січня 2022 року № 4175/4216 «Про затвердження міської цільової програми з організації військової служби, виконання військового обов’язку, мобілізаційної підготовки і територіальної оборони у місті Києві «Захисник Києва» на 2022?2025 роки». (від 29.08.2025 № 08/231-759/ПР)."
+          />
+          <ResultCard
+            status="За" chevron={false} titleClass="subheadline-emphasized"
+            title="За зняття з розгляду питаннь 1-7 розділу 1.1, пит.1, 18, 21-54 р.1.2, пит.1-2 р. 1.3, пит. 1-9 р.1.4, пит.1 р. 1.5, пит. 1 р 1.6, пит. 1-7 р. 1.7, пит. 1-2 р. 1.8, пит. 1-5 р. 1.9, пит. 1-41 р. 2, пит. 1 р.3 порядку денного."
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- queue — Figma 4067:6260 ---------- */
+function QueueScreen() {
+  const [inQueue, setInQueue] = React.useState(false);
+  const [fav, setFav] = React.useState(false);
+  const [toast, showToast] = useToast();
+  const toggleQueue = () => { showToast(inQueue ? 'Ви вийшли з черги' : 'Ви стали в чергу'); setInQueue(!inQueue); };
+  const toggleFav = () => { showToast(fav ? 'Прибрано з улюблених' : 'Додано до улюблених'); setFav(!fav); };
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular transparent onBack={noop} /></div>
+      <div className="scroll">
+        <div className="body4">
+          <Section>
+            <div className="book">
+              <BookCover title="Записки українського самашедшого" author="Ліна Костенко" />
+              <div className="book-main">
+                <h2 className="title3-emphasized">Записки українського самашедшого</h2>
+                <p className="footnote secondary">Ліна Костенко</p>
+              </div>
+            </div>
+          </Section>
+          <Section pad="var(--space-4) var(--space-5)">
+            {/* placeholder: author photo is a raster asset; Ic2ProfileEmpty is the system's empty avatar */}
+            <RichRow
+              lead={<span className="avatar-lg" aria-hidden="true"><Icon name="Ic2ProfileEmpty" size={40} /></span>}
+              overline="42 книги в наявності" title="Ліна Костенко" chevron onClick={noop}
+            />
+          </Section>
+          <Section gap="var(--space-4)">
+            <RichRow lead={<TintDisc tone="green" icon="Ic2Tsnap" />} overline="Доступна ще у 2 інших бібліотеках" title="Бібліотека ім. Лесі Українки" chevron onClick={noop} />
+            <Hairline />
+            <RichRow
+              lead={<TintDisc tone="orange" icon="Ic2Hand" />} title="Зараз на руках"
+              body="4 читачі вже в черзі. Орієнтовна дата повернення: 31 липня. Станьте в чергу для автоматичного бронювання та сповіщення."
+            />
+            <div className="actions-row">
+              <div className="grow"><Button variant="bezeled" fullWidth label={inQueue ? 'Вийти з черги' : 'Стати в чергу'} onClick={toggleQueue} /></div>
+              <Button variant="secondary" iconPosition="only" icon={<Icon name={fav ? 'Ic2HeartFilled' : 'Ic2Heart'} />} aria-label={fav ? 'Прибрати з улюблених' : 'Додати до улюблених'} onClick={toggleFav} />
+              <Button variant="secondary" iconPosition="only" icon={<Icon name="Ic2ShareIos" />} aria-label="Поділитися" onClick={noop} />
+            </div>
+          </Section>
+          <Section gap="var(--space-2)">
+            <h3 className="title3-emphasized">Анотація</h3>
+            <p className="subheadline">Роман написано від імені 35-річного комп’ютерного програміста, який на тлі особистої драми прискіпливо, глибоко й болісно сканує усі вивихи нашого глобалізованого часу. У світі надмірної (дез)інформації і тотального відчуження він – заручник світових абсурдів – прагне подолати комунікативну прірву між чоловіком і жінкою, між родиною і професією, між Україною і світом. За жанровою стилістикою «Записки українського самашедшого» – насичений мікс художньої літератури, внутрішніх щоденників, сучасного літописання й публіцистики.</p>
+          </Section>
+          <Section>
+            <div className="kv">
+              <DetailField label="Мова" values="Українська" />
+              <DetailField label="Сторінок" values="532" />
+              <DetailField label="Рік" values="1942" />
+              <DetailField label="Тип" values="Проза" />
+            </div>
+          </Section>
+          <Section pad="var(--space-1) 0">
+            <LinkRow icon="Ic2ExternalLink" label="Докладніше на Google Books" inset="var(--space-5)" />
+          </Section>
+        </div>
+      </div>
+      {toast}
+    </div>
+  );
+}
+
+/* ---------- library — Figma 4067:6406 ---------- */
+function LibraryScreen() {
+  const [fav, setFav] = React.useState(false);
+  const [toast, showToast] = useToast();
+  const toggleFav = () => { showToast(fav ? 'Прибрано з улюблених' : 'Додано до улюблених'); setFav(!fav); };
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular transparent onBack={noop} trailingAction={SHARE} /></div>
+      <div className="scroll">
+        <div className="body4">
+          <Section gap="var(--space-2)">
+            <p className="footnote secondary">Дитяча бібліотека</p>
+            <h2 className="headline">Бібліотека ім. Лесі Українки</h2>
+          </Section>
+          <Section>
+            <div className="kv">
+              <DetailField label="Графік роботи" values={['ПН: 8:00–17:00', 'ВТ: 8:00–17:00', 'СР: 8:00–17:00', 'ЧТ: 8:00–17:00', 'ПТ: вихідний', 'СБ: вихідний', 'НД: 8:00–17:00']} />
+              <DetailField label="Тип" values="Дитяча бібліотека" />
+            </div>
+          </Section>
+          <Section pad="var(--space-2)" gap="var(--space-2)">
+            {/* Figma draws a map pin (ic / location), which is not in the ic2 set: Ic2Maps is the nearest glyph */}
+            <ContactCell icon="Ic2Maps" label="вул. Олександра Кониського, 83/85" caption="Маршрут до бібліотеки" />
+            <Hairline inset="var(--space-1)" />
+            <ContactCell icon="Ic2Call" label="044 056 77 89" caption="Телефон" />
+          </Section>
+          <Section pad="var(--space-1) 0">
+            <LinkRow icon={fav ? 'Ic2HeartFilled' : 'Ic2Heart'} label={fav ? 'Прибрати з улюблених' : 'Зробити улюбленою'} onClick={toggleFav} />
+          </Section>
+        </div>
+      </div>
+      {toast}
+    </div>
+  );
+}
+
+/* ---------- 1.3 · approved — Figma 4067:6782 ---------- */
+function ApprovedScreen() {
+  return (
+    <div className="screen">
+      <div className="top">
+        <NavbarRegular title="KA 8800 AO" onClose={noop} />
+      </div>
+      <div className="scroll">
+        <div className="body16">
+          <Section pad="var(--space-4)" gap="var(--space-4)" className="center">
+            <p className="subheadline-emphasized">Покажіть QR-код поліцейському на штрафмайданчику, щоб забрати автівку.</p>
+            <QrPlaceholder />
+          </Section>
+          <Section pad="var(--space-4)" gap="var(--space-4)">
+            <ol className="stack4">
+              <StepRow state="done" title="Оплату прийнято" text="21.03 11:44" />
+              <StepRow state="done" title="Заяву затверджено" text="21.03 11:54" />
+              <StepRow state="current" title="Забирайте своє авто!" text="Вирушайте за автівкою за адресою вул. Володимирська, 15. Радимо забрати ваше авто до 20 січня, щоб уникнути доплат" />
+            </ol>
+            <SmallButton variant="bezeled" fullWidth icon={<Icon name="Ic2TransportSchedule" />} label="Маршрут до штрафмайданчика" onClick={noop} />
+          </Section>
+          <Section pad="var(--space-1) 0">
+            <SummaryRow label="Сплачено за евакуацію" amount="1720 ₴" linkLabel="Завантажити квитанцію" />
+          </Section>
+          <Section pad="var(--space-1) 0">
+            <LinkRow icon="Ic2FileDownload" label="Доказова база" />
+          </Section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- 3.1 · oscvp / default — Figma 4067:7540 ---------- */
+function PolicyScreen() {
+  return (
+    <div className="screen">
+      <div className="top"><NavbarRegular transparent onBack={noop} /></div>
+      <div className="scroll">
+        <div className="body4">
+          <Section gap="var(--space-4)" className="center">
+            <span style={{ display: 'flex', color: 'var(--content-content-positive)' }}><Icon name="Ic2ShieldCheckmark" size={40} /></span>
+            <p className="subheadline-emphasized">Автоцивілка дійсна до 20 червня</p>
+            <PlateDisplay value={'KA1345ОР'} />
+          </Section>
+          <Section gap="var(--space-4)">
+            <h3 className="title3-emphasized">Поліс VUSO</h3>
+            <FactRow icon="Ic2Receipt" label="Номер поліса" value="2345 4471 209" />
+            <FactRow icon="Ic2Spinner" label="Період дії" value="02.06.2026–02.06.2027" />
+            <FactRow icon="Ic2Car" label="Авто" value="Ford Fusion, KA1345OP" />
+            <Hairline />
+            {/* Figma draws two glyphs from other icon sets here (car with gear, heart with pulse); the ic2 set has neither, so the 20px slots stay empty */}
+            <FactRow label="За шкоду майну" value="до 250 000 ₴" />
+            <FactRow label="За шкоду здоровʼю" value="до 500 000 ₴" />
+          </Section>
+          <Section pad="var(--space-1) 0">
+            <LinkRow icon="Ic2FileDownload" label="Завантажити поліс (PDF)" inset="var(--space-5)" />
+          </Section>
+          <Section pad="var(--space-1) var(--space-2) var(--space-4)" gap="var(--space-2)">
+            <ContactCell icon="Ic2Call" label="+380636620203" caption="Цілодобова підтримка у ДТП" />
+            <Hairline inset="var(--space-1)" />
+            <ContactCell icon="Ic2Chat" label="vuso@poshta.com" caption="Консультації про страховий поліс" />
+            <Hairline inset="var(--space-1)" />
+            <ContactCell icon="Ic2Language" label="vuso.com" caption="Сайт страхової" />
+            <div style={{ padding: '0 var(--space-2)' }}>
+              <SmallButton variant="secondary" fullWidth icon={<Icon name="Ic2Info" />} label="Як скористатися полісом у ДТП" onClick={noop} />
+            </div>
+          </Section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- the page ---------- */
+const FRAMES = [
+  { id: '4067:5628', name: '1 - in progress', h: 1439, Screen: InProgressScreen,
+    note: 'Status header, step timeline, stacked detail fields, photo row.',
+    copy: 'NavbarRegular transparent · Section · StatusLine · TimelineStep · DetailField · PhotoTile · copy button + Toast' },
+  { id: '4067:6111', name: '2.1 - session', h: 812, clip: true, Screen: SessionScreen,
+    note: 'Figma frame is 812 tall and cuts its content: here it scrolls inside.',
+    copy: 'Section · VoteBar · OutRow · AvatarStack · ResultCard · TagPill · Hairline' },
+  { id: '4067:6260', name: 'queue', h: 812, clip: true, Screen: QueueScreen,
+    note: 'Figma frame is 812 tall and cuts its content: here it scrolls inside. Queue and heart buttons are live.',
+    copy: 'BookCover · RichRow · TintDisc · Button bezeled + secondary icon-only · DetailField · LinkRow' },
+  { id: '4067:6406', name: 'library', h: 812, Screen: LibraryScreen,
+    note: 'Opening hours as one stacked field; «Зробити улюбленою» is live.',
+    copy: 'DetailField with several values · Cell with caption · Hairline · LinkRow' },
+  { id: '4067:6782', name: '1.3 - approved', h: 933, Screen: ApprovedScreen,
+    note: 'Approved state: QR first, then the steps with the current one in accent.',
+    copy: 'NavbarRegular with title and close · StepRow · QrPlaceholder · Button small bezeled · SummaryRow · LinkRow' },
+  { id: '4067:7540', name: '3.1 - oscvp / default', h: 888, Screen: PolicyScreen,
+    note: 'Valid state: hero status, fact rows, contacts.',
+    copy: 'PlateDisplay · FactRow · Cell with caption · Button small secondary · LinkRow' },
+];
+
+function Page() {
+  const [theme, setTheme] = React.useState('light');
+  return (
+    <main className="page">
+      <header className="intro">
+        <h1 className="title1-emphasized">Inner content pages</h1>
+        <p className="callout">Detail pages as shipped, six frames of the Figma section «inner content pages» at 375 wide. A detail page tells one story from top to bottom: a status header, the steps that led there, key facts, links out, and the next action. They are drawn as full-width surface sections 4px apart, built from a few custom pieces on tokens plus Cell, Button and NavbarRegular. There is no tab bar and no sticky bottom action in these frames.</p>
+        <div className="toolbar">
+          <span className="footnote-emphasized">Theme</span>
+          <div className="switch"><SegmentedControl options={['Світла', 'Темна']} value={theme === 'light' ? 0 : 1} onChange={(i) => setTheme(i === 0 ? 'light' : 'dark')} /></div>
+        </div>
+      </header>
+      <section className="panel" aria-label="Frames">
+        <div className="phones">
+          {FRAMES.map(({ id, name, h, clip, Screen, note, copy }) => (
+            <figure className="demo" key={id}>
+              <figcaption>
+                <span className="footnote-emphasized">{name} · Figma {id}</span>
+                <span className="footnote secondary">{note}</span>
+                <span className="footnote">Copy: {copy}</span>
+              </figcaption>
+              <div className={'phone' + (clip ? '' : ' fit')} data-theme={theme} style={clip ? { height: h } : { minHeight: h }} role="group" aria-label={name}><Screen /></div>
+            </figure>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

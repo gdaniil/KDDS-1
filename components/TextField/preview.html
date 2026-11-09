@@ -1,0 +1,19 @@
+<!-- @dsCard group="Inputs" height=740 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.col{display:flex;flex-direction:column;gap:12px;width:343px}.lbl{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);width:72px;flex-shrink:0}.grp{width:343px;background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden}.stack{display:flex;flex-direction:column;gap:16px;align-items:flex-start}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { TextField } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  return h("div", { className: "col" },
+    h(TextField, { label: "Номер посвідчення", placeholder: "ААА 123456", helperText: "Вказаний у посвідченні водія" }),
+    h(TextField, { label: "Номер посвідчення", defaultValue: "ВХК 482910" }),
+    h(TextField, { label: "Номер посвідчення", defaultValue: "ВХК 4829", state: "focus" }),
+    h(TextField, { label: "Номер посвідчення", defaultValue: "ВХК", state: "error", message: "Невірний номер. Перевірте формат: ААА 123456" }),
+    h(TextField, { label: "Номер посвідчення", defaultValue: "ВХК 482910", disabled: true }),
+    h(TextField, { multiline: true, label: "Опис проблеми", defaultValue: "Переповнений контейнер на вул. Хрещатик, 22.\n\nКонтейнери не вивозили третій день, сміття лежить навколо майданчика між третім і четвертим під’їздом." }),
+    h(TextField, { multiline: true, label: "Коментар", placeholder: "Що ще варто знати виконавцю", helperText: "До 500 символів", maxLength: 500 }),
+    h(TextField, { multiline: true, rows: 2, label: "Опис проблеми", state: "error", message: "Опишіть проблему, щоб надіслати звернення" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

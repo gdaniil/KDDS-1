@@ -1,0 +1,23 @@
+<!-- @dsCard group="Lists" height=290 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);width:343px;padding-top:4px}.note{font:400 13px/18px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);margin-top:12px;min-height:18px}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { ServiceGridItem } = window.KyivDigitalDesignSystem_728336;
+const SERVICES = [
+  { label: "Штрафи", icon: "Ic2Fine" },
+  { label: "Петиції", icon: "Ic2Petition" },
+  { label: "ЖКП", icon: "Ic2Utilities" },
+  { label: "Паркування", icon: "Ic2Park" },
+  { label: "Укриття", icon: "Ic2Shelter" },
+  { label: "Транспорт", icon: "Ic2TransportSchedule", badge: true },
+];
+function App() {
+  const [opened, setOpened] = React.useState("");
+  return h("div", null,
+    h("div", { className: "grid" },
+      SERVICES.map((s) => h(ServiceGridItem, { key: s.icon, label: s.label, icon: s.icon, badge: s.badge, onClick: () => setOpened(s.label) }))),
+    h("div", { className: "note", "aria-live": "polite" }, opened ? "Відкрито: " + opened : ""));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

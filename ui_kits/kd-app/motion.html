@@ -1,0 +1,392 @@
+<!-- @dsCard group="KD App (iOS)" page height=1180 width=1240 subtitle="Motion and micro-interactions on the motion tokens" -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../components/bundle.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../components/bundle.js"></script>
+<style>
+  :root {
+    --phone-w: 375px;
+    --phone-h: 812px;
+    /* from Figma, not a system token: the status-bar area a navbar draws; the toast sits right under it */
+    --status-h: 54px;
+    /* line height of title1-emphasized: one row of the rolling amount */
+    --amount-lh: 34px;
+
+    /* Motion tokens from tokens.json (families duration, easing, scale). The page writes them into tokens.css
+       on its next save; the fallbacks keep this page moving until then. Change values in tokens.json, not here. */
+    --m-press: var(--duration-press, 120ms);
+    --m-state: var(--duration-state, 150ms);
+    --m-control: var(--duration-control, 300ms);
+    --m-label: var(--duration-label, 350ms);
+    --m-roll: var(--duration-roll, 420ms);
+    --m-height: var(--duration-height, 440ms);
+    --m-count: var(--duration-count, 700ms);
+    --m-ease-out: var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    --m-ease-standard: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+    --m-ease-roll: var(--ease-roll, cubic-bezier(0.32, 0.72, 0, 1));
+    --m-ease-fade: var(--ease-fade, ease);
+    --m-scale-press: var(--scale-press, 0.97);
+    /* --k: playback factor set by the speed switch on .page (1 real, 5 slow). Not a token. */
+  }
+
+  /* Page chrome around the phones (English). Everything inside .phone is components plus the helpers below, all on tokens. */
+  body { margin: 0; background: var(--background-bg-surface); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .page { box-sizing: border-box; max-width: calc(var(--phone-w) * 3 + var(--space-5) * 4); margin: 0 auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+  .page h1, .page p, .page h2 { margin: 0; }
+  .intro { display: flex; flex-direction: column; gap: var(--space-3); }
+  .intro p { max-width: 760px; }
+  .controls { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); }
+  .control { display: flex; flex-direction: column; gap: var(--space-1); width: calc(var(--space-6) * 7); }
+  .phones { display: grid; grid-template-columns: repeat(auto-fit, var(--phone-w)); justify-content: center; gap: var(--space-5); }
+  .demo { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .demo figcaption { display: flex; flex-direction: column; gap: var(--space-1); min-height: calc(var(--space-6) * 2 + var(--space-3)); }
+  .status { color: var(--content-content-secondary); min-height: calc(var(--space-6) + var(--space-3)); max-width: var(--phone-w); }
+  .notes { display: flex; flex-direction: column; gap: var(--space-2); max-width: 760px; }
+  .notes ul { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); }
+  .secondary { color: var(--content-content-secondary); }
+  @media (max-width: 480px) { .page { padding: var(--space-4) 0; } .intro, .demo figcaption, .status, .notes { margin-left: var(--space-4); margin-right: var(--space-4); } }
+
+  /* The phone: a plain 375 x 812 frame, square corners, no border. data-theme on it switches every token inside. */
+  .phone { position: relative; box-sizing: border-box; width: var(--phone-w); height: var(--phone-h); overflow: hidden; background: var(--background-bg-background); color: var(--content-content-primary); font-family: var(--font-sf); }
+  .screen { display: flex; flex-direction: column; height: 100%; }
+  .content { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5) var(--space-4); }
+  .stack { display: flex; flex-direction: column; gap: var(--space-1); }
+
+  /* custom: PressScale — press feedback on pointer-down for any tappable block. Button keeps its own 70% dim. */
+  .press { display: block; transition: transform calc(var(--m-press) * var(--k)) var(--m-ease-out); }
+  .press:active { transform: scale(var(--m-scale-press)); }
+
+  /* custom: RollingAmount — digits roll in fixed tabular slots, the last changed digit leads, unchanged digits stay still. */
+  .amount { display: inline-flex; align-items: flex-start; font-variant-numeric: tabular-nums; }
+  .digit { display: inline-block; height: var(--amount-lh); overflow: hidden; }
+  .digit-track { display: flex; flex-direction: column; transition: transform calc(var(--m-count) * var(--k)) var(--m-ease-roll); }
+  .digit-track > span { height: var(--amount-lh); text-align: center; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* custom: ToastSlot — Toast stays mounted; it drops in whole from just above, holds, and lifts back out. Always at the top. */
+  .toast-slot { position: absolute; z-index: 2; top: var(--status-h); left: var(--space-4); right: var(--space-4); opacity: 0; transform: translateY(calc(var(--space-3) * -1)); pointer-events: none;
+    transition: opacity calc(var(--m-state) * var(--k)) var(--m-ease-fade), transform calc(var(--m-control) * var(--k)) var(--m-ease-out); }
+  .toast-slot[data-open] { opacity: 1; transform: none; }
+
+  /* custom: Swap — old and new content share one grid cell. roll: they travel a full line each way, so they never overlap. fade: an icon crossfades in its fixed slot. */
+  .swap { display: grid; overflow: hidden; overflow: clip; }
+  .swap > .swap-item { grid-area: 1 / 1; min-width: 0; }
+  .swap-roll > .in { animation: roll-in calc(var(--m-roll) * var(--k)) var(--m-ease-roll) var(--delay) both; }
+  .swap-roll > .out { animation: roll-out calc(var(--m-roll) * var(--k)) var(--m-ease-roll) var(--delay) both; }
+  .swap-fade > .in { animation: fade-in calc(var(--m-roll) * var(--k)) var(--m-ease-fade) var(--delay) both; }
+  .swap-fade > .out { animation: fade-out calc(var(--m-roll) * var(--k)) var(--m-ease-fade) var(--delay) both; }
+  @keyframes roll-in { from { opacity: 0; transform: translateY(100%); } }
+  @keyframes roll-out { to { opacity: 0; transform: translateY(-100%); } }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes fade-out { to { opacity: 0; } }
+
+  /* custom: Collapse — a row that opens its own height and carries the rows below; on close it dims before its edge reaches the text. */
+  .collapse { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden;
+    transition: grid-template-rows calc(var(--m-height) * var(--k)) var(--m-ease-standard) var(--d, 0ms),
+                opacity calc(var(--m-state) * var(--k)) var(--m-ease-fade) var(--d, 0ms),
+                visibility 0s linear calc(var(--m-height) * var(--k) + var(--d, 0ms)); }
+  .collapse[data-open] { grid-template-rows: 1fr; opacity: 1; visibility: visible;
+    transition: grid-template-rows calc(var(--m-height) * var(--k)) var(--m-ease-standard) var(--d, 0ms),
+                opacity calc(var(--m-height) * var(--k)) var(--m-ease-out) var(--d, 0ms),
+                visibility 0s linear 0s; }
+  .collapse > div { min-height: 0; overflow: hidden; }
+
+  .chips { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .power { display: flex; gap: var(--space-3); align-items: flex-start; }
+  .icon-slot { flex: none; width: 24px; height: 24px; }
+  .power-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+  .tone-positive { color: var(--content-content-positive); }
+  .tone-warning { color: var(--content-content-warning); }
+  .tone-primary { color: var(--content-content-primary); }
+
+  /* Reduce Motion (the system setting, or the switch on this page): no travel, scale or roll; a short crossfade or the final state. */
+  .reduce .press:active { transform: none; }
+  .reduce .digit-track { transition-duration: 0ms; }
+  .reduce .toast-slot { transform: none; }
+  .reduce .swap > .in { animation-name: fade-in; animation-duration: calc(var(--m-state) * var(--k)); }
+  .reduce .swap > .out { animation-name: fade-out; animation-duration: calc(var(--m-state) * var(--k)); }
+  .reduce .collapse, .reduce .collapse[data-open] { transition-property: opacity, visibility; transition-delay: 0ms; }
+  .reduce .collapse:not([data-open]) { grid-template-rows: 0fr; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { NavbarRegular, Button, Card, Cell, Chip, Toast, Icon, SegmentedControl } = window.KyivDigitalDesignSystem_728336;
+
+const noop = () => {};
+/* playback factor: 1 at real speed, 5 when slowed for review. JS timings multiply by it as the CSS ones do. */
+const SpeedContext = React.createContext(1);
+const useK = () => React.useContext(SpeedContext);
+const STAGGER = 60; /* duration-stagger */
+const DIGIT_STAGGER = 45; /* per changed digit, from the right (motion.md, duration-count) */
+
+/* Timers that die with the component. */
+function useTimers() {
+  const timers = React.useRef({});
+  React.useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
+  return (name, fn, ms) => { clearTimeout(timers.current[name]); timers.current[name] = setTimeout(fn, ms); };
+}
+
+/* custom: Swap — keeps the old value mounted until its exit ends; the new one arrives in the same cell. */
+function Swap({ value, mode = 'roll', delay = 0, className = '', children }) {
+  const [items, setItems] = React.useState([{ id: 0, value, state: 'idle' }]);
+  const nextId = React.useRef(1);
+  React.useEffect(() => {
+    setItems((cur) => {
+      const last = cur[cur.length - 1];
+      if (last.value === value) return cur;
+      return [{ ...last, state: 'out' }, { id: nextId.current++, value, state: 'in' }];
+    });
+  }, [value]);
+  const done = (item) => { if (item.state === 'out') setItems((cur) => cur.filter((x) => x.id !== item.id)); };
+  return (
+    <span className={`swap swap-${mode} ${className}`} style={{ '--delay': `${delay}ms` }}>
+      {items.map((item) => (
+        <span key={item.id} className={`swap-item ${item.state}`} aria-hidden={item.state === 'out' ? true : undefined}
+          onAnimationEnd={(e) => { if (e.target === e.currentTarget) done(item); }}>
+          {children(item.value)}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/* custom: RollingAmount — 1 250,00 ₴. Only changed digits roll; the last one leads. */
+const formatKop = (kop) => String(Math.floor(kop / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + String(kop % 100).padStart(2, '0');
+function RollingAmount({ kop }) {
+  const k = useK();
+  const text = formatKop(kop);
+  const prev = React.useRef(text);
+  const chars = text.split('');
+  const before = prev.current.split('');
+  const delays = chars.map(() => 0);
+  let rank = 0;
+  for (let i = chars.length - 1; i >= 0; i--) {
+    const was = before[before.length - (chars.length - i)];
+    if (/\d/.test(chars[i]) && was !== chars[i]) { delays[i] = rank * DIGIT_STAGGER * k; rank++; }
+  }
+  React.useEffect(() => { prev.current = text; });
+  return (
+    <span className="amount title1-emphasized">
+      <span className="sr-only">{text} ₴</span>
+      <span aria-hidden="true" style={{ display: 'inline-flex' }}>
+        {chars.map((c, i) => {
+          const key = 'p' + (chars.length - 1 - i);
+          return /\d/.test(c)
+            ? <span key={key} className="digit"><span className="digit-track" style={{ transform: `translateY(${-Number(c) * 10}%)`, transitionDelay: `${delays[i]}ms` }}>{'0123456789'.split('').map((d) => <span key={d}>{d}</span>)}</span></span>
+            : <span key={key}>{c}</span>;
+        })}
+        <span>{' ₴'}</span>
+      </span>
+    </span>
+  );
+}
+
+/* 1. Top-up: press → waiting in the same button → the changed digit rolls → the toast follows its cause. */
+function TopUp({ report }) {
+  const k = useK();
+  const later = useTimers();
+  const [kop, setKop] = React.useState(125000);
+  const [loading, setLoading] = React.useState(false);
+  const [toast, setToast] = React.useState({ label: 'Карту поповнено на 100,00 ₴', open: false });
+  const topUp = () => {
+    if (loading) return;
+    setToast((t) => ({ ...t, open: false }));
+    setLoading(true);
+    report('Press: the button scales on pointer-down. Waiting: the spinner sits in the same button, nothing else moves.');
+    later('done', () => {
+      setLoading(false);
+      setKop((v) => v + 10000);
+      report('Result: only the hundreds digit rolls. The toast arrives a beat later, at the top, and holds still.');
+    }, 900 * k); /* simulated network, not a motion value */
+    later('toast', () => setToast((t) => ({ ...t, open: true })), (900 + 250) * k);
+    later('close', () => setToast((t) => ({ ...t, open: false })), (900 + 250 + 3000) * k);
+  };
+  return (
+    <div className="screen">
+      <NavbarRegular title="Транспортна карта" onBack={noop} />
+      <div className="toast-slot" data-open={toast.open ? '' : undefined}>
+        <Toast type="success" label={toast.label} />
+      </div>
+      <div className="content">
+        <Card padding="regular">
+          <div className="stack">
+            <span className="subheadline secondary">Баланс гаманця</span>
+            <span aria-live="polite"><RollingAmount kop={kop} /></span>
+          </div>
+        </Card>
+        <span className="press">
+          <Button variant="primary" fullWidth loading={loading} label="Поповнити на 100,00 ₴" onClick={topUp} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* 2. Filter: the chip fill fades, rows that stop matching close their own height, the rows below close up. */
+const NOTES = [
+  { id: 1, cat: 'transport', icon: 'Ic2Tk', label: 'Карту поповнено', caption: '100,00 ₴ · сьогодні о 09:12' },
+  { id: 2, cat: 'power', icon: 'Ic2Light', label: 'Можливе відключення світла', caption: 'Сьогодні з 14:00 до 18:00' },
+  { id: 3, cat: 'fines', icon: 'Ic2Fine', label: 'Новий штраф за паркування', caption: 'Сплатити до 23 листопада' },
+  { id: 4, cat: 'transport', icon: 'Ic2Qr', label: 'QR-квиток активний', caption: 'Діє до 10:42' },
+  { id: 5, cat: 'power', icon: 'Ic2Light', label: 'Світло повернулося', caption: 'Вчора о 21:30' },
+];
+const FILTERS = [
+  { id: 'all', label: 'Усі' },
+  { id: 'transport', label: 'Транспорт' },
+  { id: 'power', label: 'Світло' },
+  { id: 'fines', label: 'Штрафи' },
+];
+const matches = (note, f) => f === 'all' || note.cat === f;
+
+function FilteredList({ report }) {
+  const k = useK();
+  const [filter, setFilter] = React.useState('all');
+  const [delays, setDelays] = React.useState({});
+  const choose = (f) => {
+    if (f === filter) return;
+    const next = {};
+    let rank = 0;
+    NOTES.forEach((n) => { if (matches(n, filter) !== matches(n, f)) { next[n.id] = rank * STAGGER * k; rank++; } });
+    setDelays(next);
+    setFilter(f);
+    report(`${rank} rows change, ${STAGGER} ms apart in reading order. Each closes or opens its own height; the card and the rows below follow.`);
+  };
+  /* The chip has no transition of its own yet: its fill and pressed dim get one here through its style prop. */
+  const chipMotion = { transition: 'background-color calc(var(--m-state) * var(--k)) var(--m-ease-fade), color calc(var(--m-state) * var(--k)) var(--m-ease-fade), opacity calc(var(--m-press) * var(--k)) var(--m-ease-out)' };
+  return (
+    <div className="screen">
+      <NavbarRegular title="Сповіщення" onBack={noop} />
+      <div className="content">
+        <div className="chips" role="group" aria-label="Фільтр">
+          {FILTERS.map((f) => <Chip key={f.id} label={f.label} selected={filter === f.id} onClick={() => choose(f.id)} style={chipMotion} />)}
+        </div>
+        <Card padding="list">
+          {NOTES.map((n) => (
+            <div key={n.id} className="collapse" data-open={matches(n, filter) ? '' : undefined} style={{ '--d': `${delays[n.id] || 0}ms` }}>
+              <div><Cell label={n.label} caption={n.caption} icon={<Icon name={n.icon} />} accessory="chevron" onClick={noop} /></div>
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* 3. Status: the word rolls a full line, the caption follows 60 ms later, the icon crossfades in its fixed slot. */
+const POWER = [
+  { key: 'on', icon: 'Ic2Light', tone: 'positive', title: 'Світло є', caption: 'Наступне можливе відключення о 14:00' },
+  { key: 'maybe', icon: 'Ic2Time', tone: 'warning', title: 'Можливе відключення', caption: 'Сьогодні з 14:00 до 18:00' },
+  { key: 'off', icon: 'Ic2Alert', tone: 'primary', title: 'Світла немає', caption: 'Орієнтовно до 18:00' },
+];
+const POWER_BY_KEY = Object.fromEntries(POWER.map((p) => [p.key, p]));
+
+function PowerStatus({ report }) {
+  const k = useK();
+  const later = useTimers();
+  const [index, setIndex] = React.useState(0);
+  const [loading, setLoading] = React.useState(false);
+  const state = POWER[index];
+  const refresh = () => {
+    if (loading) return;
+    setLoading(true);
+    report('Waiting: the spinner is in the button; the old status holds until the new one arrives.');
+    later('done', () => {
+      setLoading(false);
+      setIndex((i) => (i + 1) % POWER.length);
+      report('The status word rolls, its caption follows one stagger step later, the icon crossfades. Nothing pulses afterwards.');
+    }, 700 * k); /* simulated network, not a motion value */
+  };
+  return (
+    <div className="screen">
+      <NavbarRegular title="Світло" onBack={noop} />
+      <div className="content">
+        <Card padding="regular" caption="Моя адреса">
+          <div className="power" role="status">
+            <Swap value={state.key} mode="fade" className="icon-slot">
+              {(key) => <span className={`tone-${POWER_BY_KEY[key].tone}`} style={{ display: 'flex' }}><Icon name={POWER_BY_KEY[key].icon} size={24} /></span>}
+            </Swap>
+            <span className="power-text">
+              <Swap value={state.title} className="title3-emphasized">{(t) => t}</Swap>
+              <Swap value={state.caption} delay={STAGGER * k} className="subheadline secondary">{(t) => t}</Swap>
+            </span>
+          </div>
+        </Card>
+        <span className="press">
+          <Button variant="secondary" fullWidth loading={loading} label="Оновити статус" onClick={refresh} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const FRAMES = [
+  { name: 'Поповнення гаманця', tags: 'press · waiting in place · rolling amount · toast after its cause', tokens: 'duration-press, scale-press, duration-count, ease-roll, duration-control, ease-out', Screen: TopUp },
+  { name: 'Фільтр сповіщень', tags: 'chip state fade · rows close and open their height · stagger', tokens: 'duration-state, duration-height, ease-standard, duration-stagger', Screen: FilteredList },
+  { name: 'Статус світла', tags: 'status roll · caption one step later · icon crossfade in a fixed slot', tokens: 'duration-roll, ease-roll, duration-stagger, ease-fade', Screen: PowerStatus },
+];
+
+function Frame({ theme, frame, index }) {
+  const [status, setStatus] = React.useState('Try it: tap the button or a chip.');
+  const { name, tags, tokens, Screen } = frame;
+  return (
+    <figure className="demo">
+      <figcaption>
+        <span className="footnote-emphasized">{index + 1}. {name}</span>
+        <span className="footnote">{tags}</span>
+        <span className="footnote secondary">{tokens}</span>
+      </figcaption>
+      <div className="phone" data-theme={theme}><Screen report={setStatus} /></div>
+      <p className="footnote status" aria-live="polite">{status}</p>
+    </figure>
+  );
+}
+
+function Page() {
+  const systemReduce = React.useMemo(() => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
+  const [mode, setMode] = React.useState(0);
+  const [speed, setSpeed] = React.useState(0);
+  const [reduce, setReduce] = React.useState(systemReduce ? 1 : 0);
+  const theme = mode === 0 ? 'light' : 'dark';
+  const k = speed === 0 ? 1 : 5;
+  return (
+    <SpeedContext.Provider value={k}>
+      <main className={'page' + (reduce ? ' reduce' : '')} style={{ '--k': k }}>
+        <header className="intro">
+          <h1 className="title1-emphasized">Motion</h1>
+          <p className="callout">Three micro-interactions on the motion tokens from <code>motion.md</code>. Each motion has a cause, keeps the object, and stops: press before result, waiting inside the same button, only the changed digit rolls, rows make and close their own room, a status word rolls instead of swapping. Slow it down five times to see the order; turn on Reduce Motion to see the fallback.</p>
+          <div className="controls">
+            <div className="control"><span className="footnote secondary">Theme</span><SegmentedControl options={['Світла', 'Темна']} value={mode} onChange={setMode} /></div>
+            <div className="control"><span className="footnote secondary">Speed</span><SegmentedControl options={['Звичайна', 'Повільно ×5']} value={speed} onChange={setSpeed} /></div>
+            <div className="control"><span className="footnote secondary">Reduce Motion</span><SegmentedControl options={['Вимкнено', 'Увімкнено']} value={reduce} onChange={setReduce} /></div>
+          </div>
+        </header>
+        <section className="phones" aria-label="Screens">
+          {FRAMES.map((frame, i) => <Frame key={frame.name} theme={theme} frame={frame} index={i} />)}
+        </section>
+        <section className="notes" aria-label="Notes">
+          <h2 className="headline">Notes</h2>
+          <ul className="footnote">
+            <li>PressScale, RollingAmount, ToastSlot, Swap and Collapse are custom pieces built from tokens. The components themselves have no transitions yet (motion.md, «Стан компонентів»); the chip gets one here through its <code>style</code> prop.</li>
+            <li>The network waits (900 and 700 ms) are simulated and multiply with the speed switch like the motion values; they are not tokens.</li>
+            <li>In the real app screens, sheets and alerts stay native iOS transitions; these patterns are for pieces inside a screen.</li>
+          </ul>
+        </section>
+      </main>
+    </SpeedContext.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body>
+</html>

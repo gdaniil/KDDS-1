@@ -1,0 +1,31 @@
+/* --font-sf, --font-roboto and --font-mono now come from tokens.css (tokens.json type.families). */
+/* Kyiv Digital — type system.
+   Primary UI face is SF Pro (native on iOS via the system stack — Apple's SF Pro
+   license does not permit redistributing the binary, so we ship the system stack
+   instead, exactly as the source file's own text nodes do: "SF Pro", -apple-system,
+   BlinkMacSystemFont, ...). Inter (self-hosted, open license) is the fallback for
+   non-Apple platforms and is also used in-file for dense data (11-14px). Roboto
+   covers the Android reference variants. SF Mono is for card/plate numerals (also
+   a system-stack substitution — see readme "Iconography & fonts caveats"). */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* iOS type scale (SF Pro), exact px/line-height/tracking from Text-Styles/ios-typography */
+  --text-large-title: 400 34px/41px var(--font-sf); --ls-large-title: -0.4px;
+  --text-title1: 400 28px/34px var(--font-sf); --ls-title1: -0.4px;
+  --text-title2: 700 22px/28px var(--font-sf); --ls-title2: -0.4px;
+  --text-title3: 700 20px/25px var(--font-sf); --ls-title3: -0.4px;
+  --text-headline: 590 17px/22px var(--font-sf); --ls-headline: -0.4px;
+  --text-body: 400 17px/22px var(--font-sf); --ls-body: -0.4px;
+  --text-callout: 590 16px/21px var(--font-sf); --ls-callout: -0.4px;
+  --text-subheadline: 590 15px/20px var(--font-sf); --ls-subheadline: -0.4px;
+  --text-footnote: 590 13px/18px var(--font-sf); --ls-footnote: -0.4px;
+  --text-caption1: 590 12px/16px var(--font-sf); --ls-caption1: -0.4px;
+  --text-caption2: 590 11px/13px var(--font-sf); --ls-caption2: -0.4px;
+
+  /* Inter — dense data / secondary content, as used at small sizes across cells & chips */
+  --text-data-sm: 600 12px/16px var(--font-inter);
+  --text-data-xs: 600 11px/13px var(--font-inter);
+}

@@ -1,0 +1,19 @@
+<!-- @dsCard group="Navigation" height=560 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.col{display:flex;flex-direction:column;gap:12px;width:343px}.lbl{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);width:72px;flex-shrink:0}.grp{width:343px;background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden}.stack{display:flex;flex-direction:column;gap:16px;align-items:flex-start}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { NavbarMain } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  const [view, setView] = React.useState("grid");
+  const noop = () => {};
+  return h("div", { className: "stack", style: { width: 375 } },
+    h("div", { style: { background: "var(--background-bg-accent-home)", width: 375 } },
+      h(NavbarMain, { type: "home", scrolled: false, date: "23 жовтня", greeting: "Доброго дня!", temperature: "23°", weatherIcon: "Ic2Sun",
+        aqi: 47, showPowerStatus: true, onSearch: noop, onAvatarClick: noop, onWeatherClick: noop, onAqiClick: noop, onPowerStatusClick: noop })),
+    h(NavbarMain, { type: "home", temperature: "14°", weatherIcon: "Ic2Cloud", aqi: 62, onWeatherClick: noop, onAvatarClick: noop }),
+    h(NavbarMain, { type: "services", title: "Сервіси", view, onViewChange: setView, onHomeClick: noop }),
+    h(NavbarMain, { type: "profile", userName: "Олена К.", onHomeClick: noop, onEdit: noop }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

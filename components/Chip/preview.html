@@ -1,0 +1,29 @@
+<!-- @dsCard group="Inputs" height=220 width=760 -->
+<style>body{margin:0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;flex-wrap:wrap;align-items:flex-start}.col{box-sizing:border-box;width:375px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--background-bg-background);color:var(--content-content-primary)}.lbl{margin:12px 0 0;font:590 11px/13px var(--font-mono);letter-spacing:0;color:var(--content-content-secondary)}.lbl:first-child{margin-top:0}.scroll{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:6px 16px;scrollbar-width:none}.wrap{display:flex;flex-wrap:wrap;gap:8px}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Chip } = window.KyivDigitalDesignSystem_728336;
+const TOPICS = ["Усі", "Дороги", "Освітлення", "Сміття", "Ліфти", "Опалення"];
+function Column({ theme }) {
+  const [one, setOne] = React.useState("Усі");
+  const [many, setMany] = React.useState(["Сьогодні"]);
+  const toggle = (k) => setMany(many.includes(k) ? many.filter((x) => x !== k) : [...many, k]);
+  return h("div", { className: "col", "data-theme": theme },
+    h("p", { className: "lbl" }, "one of · a scrolling row"),
+    h("div", { className: "scroll" }, TOPICS.map((t) => h(Chip, { key: t, label: t, selected: one === t, onClick: () => setOne(t) }))),
+    h("p", { className: "lbl" }, "many of · icon · disabled"),
+    h("div", { className: "wrap" },
+      h(Chip, { label: "Сьогодні", icon: "Ic2Time", selected: many.includes("Сьогодні"), onClick: () => toggle("Сьогодні") }),
+      h(Chip, { label: "Поруч", icon: "Ic2LocationFill", selected: many.includes("Поруч"), onClick: () => toggle("Поруч") }),
+      h(Chip, { label: "Безкоштовно", disabled: true })));
+}
+function App() {
+  const root = document.documentElement;
+  const read = () => root.getAttribute("data-theme") || "light";
+  const [theme, setTheme] = React.useState(read);
+  React.useEffect(() => { const mo = new MutationObserver(() => setTheme(read())); mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] }); return () => mo.disconnect(); }, []);
+  return h("div", { className: "row" }, h(Column, { theme }), h(Column, { theme: theme === "dark" ? "light" : "dark" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

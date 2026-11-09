@@ -1,0 +1,18 @@
+<!-- @dsCard group="Lists" height=330 -->
+<style>body{margin:0;padding:16px 0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.feed{width:375px;max-width:100%}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { FeedCell, FeedDate } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  const open = () => {};
+  return h("div", { className: "feed" },
+    h(FeedDate, { label: "Сьогодні" }),
+    h(FeedCell, { icon: "Ic2Fine", title: "Штраф сплачено", description: "Постанова ЛК 1234567 · 340,00 ₴", time: "14:20", onClick: open }),
+    h(FeedCell, { icon: "Ic2Petition", tint: "accent", title: "Нова петиція", description: "Освітлення на вулиці Січових Стрільців", time: "11:05", onClick: open }),
+    h(FeedDate, { label: "23 жовтня" }),
+    h(FeedCell, { icon: "Ic2AlertAirraid", tint: "negative", title: "Повітряна тривога", description: "Київ · тривала 47 хв", time: "03:12", onClick: open }),
+    h(FeedCell, { icon: "Ic2Utilities", title: "Рахунок за ЖКП", description: "Жовтень · 1 250,00 ₴", time: "09:00" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

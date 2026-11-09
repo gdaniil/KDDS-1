@@ -1,0 +1,18 @@
+<!-- @dsCard group="Lists" height=208 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.sheet{background:var(--background-bg-surface);border-radius:var(--radius-card);padding:16px 0}.cap{font:590 13px/18px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-secondary);padding:0 16px 8px}.row{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none}.row::-webkit-scrollbar{display:none}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { QuickAccessItem } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  return h("div", { className: "sheet" },
+    h("div", { className: "cap" }, "Швидкий доступ"),
+    h("div", { className: "row" },
+      h(QuickAccessItem, { label: "Штрафи", icon: "Ic2Fine" }),
+      h(QuickAccessItem, { type: "parking-active", label: "КА 1234 ІР", status: "00:32", "aria-label": "Паркування КА 1234 ІР, 00:32" }),
+      h(QuickAccessItem, { type: "qr-active", label: "QR-квитки", status: "(5 шт.)" }),
+      h(QuickAccessItem, { label: "Петиції", icon: "Ic2Petition" }),
+      h(QuickAccessItem, { type: "all" })));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

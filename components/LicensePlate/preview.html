@@ -1,0 +1,14 @@
+<!-- @dsCard group="Inputs" height=110 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.col{display:flex;flex-direction:column;gap:12px;width:343px}.lbl{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);width:72px;flex-shrink:0}.grp{width:343px;background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden}.stack{display:flex;flex-direction:column;gap:16px;align-items:flex-start}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { LicensePlate } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  return h("div", { className: "row" },
+    h(LicensePlate, null),
+    h(LicensePlate, { defaultValue: "KA1345OP" }),
+    h(LicensePlate, { defaultValue: "KA13", focused: true }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

@@ -1,0 +1,15 @@
+<!-- @dsCard group="Navigation" height=100 -->
+<style>body{margin:0;padding:16px;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.col{display:flex;flex-direction:column;gap:12px;width:343px}.lbl{font:590 11px/13px var(--font-sf);letter-spacing:-0.4px;color:var(--content-content-primary);width:72px;flex-shrink:0}.grp{width:343px;background:var(--background-bg-surface);border-radius:var(--radius-control);overflow:hidden}.stack{display:flex;flex-direction:column;gap:16px;align-items:flex-start}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { SegmentedControl } = window.KyivDigitalDesignSystem_728336;
+function App() {
+  const [seg, setSeg] = React.useState("Усі");
+  const [two, setTwo] = React.useState(0);
+  return h("div", { className: "col" },
+    h(SegmentedControl, { options: ["Усі", "Сплачені", "Несплачені"], value: seg, onChange: setSeg }),
+    h(SegmentedControl, { options: ["Список", "Мапа"], value: two, onChange: setTwo }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>

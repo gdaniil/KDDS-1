@@ -1,0 +1,8 @@
+The bar of list screens: a centred title with a search field or tabs under it, and the status bar.
+
+**You provide** `type` and `title`. For `type="search"`: `searchValue` + `onSearchChange` to control the text (or `defaultSearchValue` to let it keep its own), `onSearchSubmit` for Enter, `onSearchClear` if you need to react to the clear button, and `searchPlaceholder` when «Пошук» is too vague («Пошук послуг»). For `type="tabs"`: `tabs`, `selectedTab` and `onTabChange`. The slots beside the title are empty by default: `onBack` (back arrow, «Назад»), `onClose` («Закрити») or `leadingAction={{ icon, label, onClick }}` on the left, `trailingAction={{ icon, label, onClick }}` on the right (for example `Ic2PlusCircle`, «Створити звернення»). `label` is the button's `aria-label`.
+
+- Each slot is a real `<button>`: the 24px glyph where Figma draws it, a 44×44 tap area around it, the focus ring (`border-border-accent`, 2px) and 70% while pressed, like `Button`. The glyph is `content-content-primary`. `leadingIcon` and `trailingIcon` still draw a node as given (legacy); don't wrap your own button in them any more.
+- `search` for long lists people search through («Сервіси»); `tabs` for two to five views of the same list («Активні», «Архів»).
+- The title is `headline` (17/22 semibold), centred, as Figma draws it; this is not the 34px large title. Keep it to one short line; a longer title ends with «…» before the icon slots.
+- The search field is a real `<input type="search">` on `background-bg-subtle` with `radius-control`, 36px tall. The clear button («Очистити») appears only while there is text; filtering the list is up to you.

@@ -1,0 +1,28 @@
+<!-- @dsCard group="Inputs" height=420 width=760 -->
+<style>body{margin:0;background:var(--background-bg-background);color:var(--content-content-primary);font-family:var(--font-sf)}.row{display:flex;flex-wrap:wrap;align-items:flex-start}.col{box-sizing:border-box;width:375px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--background-bg-background);color:var(--content-content-primary)}.lbl{margin:12px 0 0;font:590 11px/13px var(--font-mono);letter-spacing:0;color:var(--content-content-secondary)}.lbl:first-child{margin-top:0}</style>
+<div id="root"></div>
+<script>
+const h = React.createElement;
+const { Select, Card } = window.KyivDigitalDesignSystem_728336;
+const WHO = [{ value: "mother", label: "Мати" }, { value: "father", label: "Батько" }, { value: "guardian", label: "Опікун" }];
+function Column({ theme }) {
+  const [who, setWho] = React.useState("");
+  return h("div", { className: "col", "data-theme": theme },
+    h("p", { className: "lbl" }, "placeholder · chosen · opens the platform menu"),
+    h(Card, { gap: 4 },
+      h(Select, { label: "Хто ви для дитини", options: WHO, value: who, onChange: setWho, placeholder: "Оберіть" }),
+      h(Select, { label: "Тема звернення", options: ["Дороги", "Освітлення", "Сміття"], defaultValue: "Сміття", helperText: "Від теми залежить, хто розгляне звернення" })),
+    h("p", { className: "lbl" }, "error · disabled"),
+    h(Card, { gap: 4 },
+      h(Select, { label: "Район", options: ["Голосіївський", "Дарницький"], state: "error", message: "Оберіть район, щоб продовжити" }),
+      h(Select, { label: "Місто", options: ["Київ"], defaultValue: "Київ", disabled: true })));
+}
+function App() {
+  const root = document.documentElement;
+  const read = () => root.getAttribute("data-theme") || "light";
+  const [theme, setTheme] = React.useState(read);
+  React.useEffect(() => { const mo = new MutationObserver(() => setTheme(read())); mo.observe(root, { attributes: true, attributeFilter: ["data-theme"] }); return () => mo.disconnect(); }, []);
+  return h("div", { className: "row" }, h(Column, { theme }), h(Column, { theme: theme === "dark" ? "light" : "dark" }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
